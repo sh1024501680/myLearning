@@ -29,4 +29,40 @@ hive导入未分区数据到分区表
 	# 导入未分区数据到分区表
 	insert overwrite table t1 partition(dt) select c1,c2 dt from t2;
 
+编译Hadoop2.8.5源码
+	安装maven
+	安装protobuf
+		1)下载源码 https://github.com/protocolbuffers/protobuf/tree/v2.5.0
+		2)上传至linux并解压缩
+		3)执行yum install -y glibc-headers
+			  yum install -y gcc-c++
+			  yum install -y make
+			  yum install -y cmake
+			  yum install -y openssl-devel
+			  yum install -y ncurses-devel
+		4)cd protobuf-2.5.0
+			a.执行 ./autogen.sh
+				报错：tar (grandchild): bzip2:无法 exec: 没有那个文件或目录
+					安装bzip2：yum install -y bzip2
+				报错：Failed to connect to googlemock.googlecode.com
+					修改一下autogen.sh中
+						echo "Google Test not present.  Fetching gtest-1.5.0 from the web..."
+						 curl http://googletest.googlecode.com/files/gtest-1.5.0.tar.bz2 | tar jx
+						 mv gtest-1.5.0 gtest
+						为
+						wget https://github.com/google/googletest/archive/release-1.5.0.tar.gz
+						tar xzvf release-1.5.0.tar.gz
+						mv googletest-release-1.5.0 gtest
+						再次执行
+				报错：autoreconf: command not found
+					安装autoreconf
+				报错Can't exec "aclocal": 没有那个文件或目录 at /usr/share/autoconf/Autom4te/Fil
+					安装automake
+			b.按顺序执行
+				./configure --prefix=/usr/local/protobuf
+				make
+				make check
+				make install
+	解压缩Hadoop源码并进入Hadoop源码文件夹
+		mvn package -Pdist,native -DskipTests -Dtar
 	
