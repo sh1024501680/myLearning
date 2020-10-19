@@ -22,5 +22,11 @@ mysql修改用户密码：
 	SET PASSWORD FOR 'azkaban'@'%' = PASSWORD("123456");
 	UPDATE mysql.user SET Password = PASSWORD('123456') WHERE user = 'root';
 	
+hive导入未分区数据到分区表
+	#开启动态分区设置
+	set hive.exec.dynamic.partition =true
+	set hive.exec.dynamic.partition.mode = nonstrict
+	# 导入未分区数据到分区表
+	insert overwrite table t1 partition(dt) select c1,c2 dt from t2;
 
 	
