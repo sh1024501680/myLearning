@@ -30,8 +30,8 @@ hive导入未分区数据到分区表
 	insert overwrite table t1 partition(dt) select c1,c2 dt from t2;
 
 编译Hadoop2.8.5源码
-	安装maven
-	安装protobuf
+	1.安装maven
+	2.安装protobuf
 		1)下载源码 https://github.com/protocolbuffers/protobuf/tree/v2.5.0
 		2)上传至linux并解压缩
 		3)执行yum install -y glibc-headers
@@ -63,6 +63,6 @@ hive导入未分区数据到分区表
 				make
 				make check
 				make install
-	解压缩Hadoop源码并进入Hadoop源码文件夹
+	3.解压缩Hadoop源码并进入Hadoop源码文件夹
 		mvn package -Pdist,native -DskipTests -Dtar
 	
