@@ -1,0 +1,119 @@
+一、ZooKeeper概述
+	1、Zookeeper是一个开源的分布式的，为分布式应用提供协调服务的Apache项目。
+	2、Zookeeper从设计模式角度来理解：是一个基于观察者模式设计的分布式服务管理
+		框架，它负责存储和管理大家都关心的数据，然后接受观察者的注册，一旦这些
+		数据的状态发生变化，Zookeeper就将负责通知已经在Zookeeper上注册的那些观察者
+		做出相应的反应，从而实现集群中类似Master/Slave管理模式
+	3、Zookeeper=文件系统+通知机制
+	4、应用场景：
+		提供的服务包括：分布式消息同步和协调机制、服务器节点动态上下线、统一配置管理、负载均衡、集群管理等。
+	5、数据结构：
+		ZooKeeper数据模型的结构与Unix文件系统很类似，整体上可以看作是一棵树，每个节点称做一个ZNode。
+		 很显然zookeeper集群自身维护了一套数据结构。这个存储结构是一个树形结构，其上的每一个节点，
+		 我们称之为"znode"，每一个znode默认能够存储1MB的数据，每个ZNode都可以通过其路径唯一标识。
+	6、节点类型：
+		1）Znode有两种类型：
+			短暂（ephemeral）：客户端和服务器端断开连接后，创建的节点自己删除
+			持久（persistent）：客户端和服务器端断开连接后，创建的节点不删除
+		2）Znode有四种形式的目录节点（默认是persistent ）
+		（1）持久化目录节点（PERSISTENT）
+			客户端与zookeeper断开连接后，该节点依旧存在
+		（2）持久化顺序编号目录节点（PERSISTENT_SEQUENTIAL）
+			客户端与zookeeper断开连接后，该节点依旧存在，只是Zookeeper给该节点名称进行顺序编号
+		（3）临时目录节点（EPHEMERAL）
+			客户端与zookeeper断开连接后，该节点被删除
+		（4）临时顺序编号目录节点（EPHEMERAL_SEQUENTIAL）
+			客户端与zookeeper断开连接后，该节点被删除，只是Zookeeper给该节点名称进行顺序编号
+	7、特点：
+		1）Zookeeper：一个领导者（leader），多个跟随者（follower）组成的集群。
+		2）Leader负责进行投票的发起和决议，更新系统状态
+		3）Follower用于接收客户请求并向客户端返回结果，在选举Leader过程中参与投票
+		4）集群中只要有半数以上节点存活，Zookeeper集群就能正常服务。
+		5）全局数据一致：每个server保存一份相同的数据副本，client无论连接到哪个server，数据都是一致的。
+		6）更新请求顺序进行，来自同一个client的更新请求按其发送顺序依次执行。
+		7）数据更新原子性，一次数据更新要么成功，要么失败。
+		8）实时性，在一定时间范围内，client能读到最新数据。
+	8、选举机制：
+		1）半数机制：集群中半数以上机器存活，集群可用。所以zookeeper适合装在奇数台机器上。
+		2）Zookeeper虽然在配置文件中并没有指定master和slave。但是，zookeeper工作时，是有
+			一个节点为leader，其他则为follower，Leader是通过内部的选举机制临时产生的
+		例：
+			假设有五台服务器组成的zookeeper集群，它们的id从1-5，同时它们都是最新启动的，
+			也就是没有历史数据，在存放数据量这一点上，都是一样的。假设这些服务器依序启动。
+		（1）服务器1启动，此时只有它一台服务器启动了，它发出去的报没有任何响应，所以它的选举状态一直是LOOKING状态。
+		（2）服务器2启动，它与最开始启动的服务器1进行通信，互相交换自己的选举结果，由于两者都没有历史数据，所以id
+			值较大的服务器2胜出，但是由于没有达到超过半数以上的服务器都同意选举它(这个例子中的半数以上是3)，所以
+			服务器1、2还是继续保持LOOKING状态。
+		（3）服务器3启动，根据前面的理论分析，服务器3成为服务器1、2、3中的老大，而与上面不同的是，此时有三台服务器
+			选举了它，所以它成为了这次选举的leader。
+		（4）服务器4启动，根据前面的分析，理论上服务器4应该是服务器1、2、3、4中最大的，但是由于前面已经有半数以上
+			的服务器选举了服务器3，所以它只能接受当小弟的命了。
+		（5）服务器5启动，同4一样当小弟。
+二、ZooKeeper实战
+	1、分布式安装部署：在hadoop01、hadoop02和hadoop03三个节点上部署Zookeeper。
+		1）tar -zxvf zookeeper-3.4.10.tar.gz -C /opt/install/	解压zookeeper安装包到/opt/install/目录下
+		2）mkdir -p data/zkData	  在/opt/install/zookeeper-3.4.10/这个目录下创建data/zkData
+		3）mv zoo_sample.cfg zoo.cfg  重命名zookeeper-3.4.10/conf目录下的zoo_sample.cfg为zoo.cfg
+		4）配置zoo.cfg:
+			dataDir=/opt/install/zookeeper-3.4.10/data/zkData
+			
+			server.1=hadoop102:2888:3888
+			server.2=hadoop103:2888:3888
+			server.3=hadoop104:2888:3888
+		参数说明：
+			server.A=B:C:D
+				A是一个数字，表示这个是第几号服务器；
+				B是这个服务器的ip地址；
+				C是这个服务器与集群中的Leader服务器交换信息的端口；
+				D是万一集群中的Leader服务器挂了，需要一个端口来重新进行选举，选出一个新的Leader，而这个端口就是
+					用来执行选举时服务器相互通信的端口。
+				
+					集群模式下配置一个文件myid，这个文件在dataDir目录下，这个文件里面有一个数据就是A的值，Zookeeper
+				启动时读取此文件，拿到里面的数据与zoo.cfg里面的配置信息比较从而判断到底是哪个server。
+		5）在/opt/install/zookeeper-3.4.10/data/zkData目录下创建一个myid的文件
+			vi myid  添加zoo.cfg文件中对应server的编号
+			拷贝配置好的zookeeper到其他机器上
+		6）cd /opt/install/zookeeper-3.4.10/ 进入ZooKeeper家目录
+			bin/zkServer.sh start  启动ZooKeeper
+			bin/zkServer.sh status  查看ZooKeeper启动状态 （不同机器会显示leader和follower）
+	2、客户端命令行操作
+		1）bin/zkCli.sh  启动客户端
+		2）ls /  查看当前znode中所有内容
+		3）ls2 /  查看更多当前节点数据
+		4）create /xxx "xxx" 创建节点(节点内容不能为空)
+			-s  编号
+			-e  短暂节点
+		5）get /xxx 获得节点的值
+		6）set /xxx xxx
+		监听：注册一次，监听一次
+		7）get /xxx watch  节点值变化监听
+		8）ls /xxx watch   节点路径变化监听
+		9）delete /xxx  删除节点
+		10）rmr /xxx  递归删除节点
+		11）stat /xxx  查看节点状态(数据详情)
+			1）czxid- 引起这个znode创建的zxid，创建节点的事务的zxid（ZooKeeper Transaction Id）
+			2）ctime - znode被创建的毫秒数(从1970年开始)
+			3）mzxid - znode最后更新的zxid
+			4）mtime - znode最后修改的毫秒数(从1970年开始)
+			5）pZxid-znode最后更新的子节点zxid
+			6）cversion - znode子节点变化号，znode子节点修改次数
+			7）dataversion - znode数据变化号
+			8）aclVersion - znode访问控制列表的变化号
+			9）ephemeralOwner- 如果是临时节点，这个是znode拥有者的session id。如果不是临时节点则是0。
+			10）dataLength- znode的数据长度
+			11）numChildren - znode子节点数量
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+		

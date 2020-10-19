@@ -1,0 +1,461 @@
+一、安装mysql
+	1、安装命令
+		$ wget http://dev.mysql.com/get/mysql57-community-release-el7-10.noarch.rpm
+		$ rpm -ivh mysql-community-release-el7-5.noarch.rpm
+		$ yum -y install mysql-community-server
+	2、配置mysql
+		(1) 开启Mysql服务
+			# systemctl start mysqld.service			
+		(2) 设置root用户密码
+			# mysqladmin -uroot password '123456'
+		(3) 为用户以及其他机器节点授权
+			mysql> grant all on *.* to root@'hadoop-senior01' identified by '123456';
+				   grant all on *.* to root@'hadoop104' identified by '000000';
+
+			grant：授权
+			all：所有权限
+			*.*：数据库名称.表名称
+			root：操作mysql的用户
+			@''：主机名
+			密码：123456
+二、Hive
+	1、hive：
+		Hive，数据仓库，是MapReduce的客户端，也就是说不必要每台机器都安装部署Hive
+		操作接口是采用SQL语法，HQL
+		避免了写MapReduce的繁琐过程
+	2、安装hive：
+		(1) $ tar -zxf /opt/software/hive-0.13.1-cdh5.3.6.tar.gz -C /opt/modules/
+		(2) 修改/opt/modules/hive-0.13.1-cdh5.3.6/conf/下的配置文件:
+			** hive-site.xml
+				<property>
+					<name>javax.jdo.option.ConnectionURL</name>
+					<value>jdbc:mysql://hadoop-senior03:3306/metastore?createDatabaseIfNotExist=true</value>
+					<description>JDBC connect string for a JDBC metastore</description>
+				</property>
+
+				<property>
+					<name>javax.jdo.option.ConnectionDriverName</name>
+					<value>com.mysql.jdbc.Driver</value>
+					<description>Driver class name for a JDBC metastore</description>
+				</property>
+
+				<property>
+					<name>javax.jdo.option.ConnectionUserName</name>
+					<value>root</value>
+					<description>username to use against metastore database</description>
+				</property>
+
+				<property>
+					<name>javax.jdo.option.ConnectionPassword</name>
+					<value>123456</value>
+					<description>password to use against metastore database</description>
+				</property>
+				
+				** 显示数据库名称以及字段名称
+					<!-- 是否在当前客户端中显示查询出来的数据的字段名称 -->
+					<property>
+						<name>hive.cli.print.header</name>
+						<value>true</value>
+						<description>Whether to print the names of the columns in query output.</description>
+					</property>
+
+					<!-- 是否在当前客户端中显示当前所在数据库名称 -->
+					<property>
+						<name>hive.cli.print.current.db</name>
+						<value>true</value>
+						<description>Whether to include the current database in the Hive prompt.</description>
+					</property>
+				
+				** Hive的MapReduce任务
+					<property>
+						<name>hive.fetch.task.conversion</name>
+						<value>more</value>
+						<description>
+						Some select queries can be converted to single FETCH task minimizing latency.
+						Currently the query should be single sourced not having any subquery and should not have
+						any aggregations or distincts (which incurs RS), lateral views and joins.
+						1. minimal : SELECT STAR, FILTER on partition columns, LIMIT only
+						2. more    : SELECT, FILTER, LIMIT only (TABLESAMPLE, virtual columns)
+						</description>
+					</property>
+
+			** hive-log4j.properties
+				hive.log.dir=/opt/modules/hive-0.13.1-cdh5.3.6/logs
+			** 需准备数据库驱动包到Hive根目录下的lib文件夹
+				$ cp mysql-connector-java-5.1.39.jar /opt/modules/hive-0.13.1-cdh5.3.6/lib/
+			** 初始化元数据
+				schematool -dbType mysql -initSchema
+			** 启动Hive
+				$ bin/hive
+			** 修改HDFS系统中关于Hive的一些目录权限
+				$ /opt/modules/hadoop-2.5.0-cdh5.3.6/bin/hadoop fs -chmod 777 /tmp/
+				$ /opt/modules/hadoop-2.5.0-cdh5.3.6/bin/hadoop fs -chmod 777 /user/hive/warehouse
+			
+	3、hive的使用
+		** 创建数据库
+			语法：create database 库名;
+			示例：hive> create database staff;
+		** 创建表操作
+			语法：create table [if not exists] [库名.]表名(字段) partitioned by (字段名 字段类型,字段名 字段类型)
+				  row format delimited fields terminated by '分隔符';
+				  create table 表名 as select语句;(查询结果存储为一张表)
+			示例：hive> create table t1(eid int, name string, sex string) row format delimited fields terminated by '\t';
+			会复制属性以及属性值到新的表中
+		** 复制表结构
+			语法：create table 表名 like 表名
+			不会复制属性值，只会复制表结构。
+		** 导入数据
+			*** 从HDFS[本地]导入(local关键字区分本地和hdfs路径)(overwrite关键字表示覆盖原有数据)
+				load data [local] inpath '文件路径' [overwrite] into table 表名;
+				insert导入默认追加导入，overwrite关键字表示覆盖导入
+				insert [overwrite] into table 表名 select语句;
+		** 导出数据
+			-- insert overwrite [local] directory "导出路径" row format delimited fields terminated by '\t'
+			会递归创建目录(注意权限问题)
+			   select语句
+			-- hive -e "select语句" >> 文件名
+		* Hive的元数据库的备份与还原
+			常见错误：启动Hive时，无法初始化metastore数据库，无法创建连接，无法创建会话。
+				可能性分析：
+					1、hive的metastore数据库丢失了，比如drop，比如文件损坏
+					2、metasotre版本号不对。
+					3、远程表服务
+			备份的基本语法：
+				$ mysqldump -uroot -p metastore > metastore.sql
+			还原的基本语法：
+				$ mysql -uroot -p metastore < metastore.sql
+			复习：find命令，查找metastore.sql默认存放位置
+		* Hive操作HQL语句的两个参数
+			一般使用：
+				oozie
+				azakban
+				crontab
+			hive -e ""
+			hive -f 文件.hql
+			
+		练习：
+			1、创建部门，员工信息表
+				hive> create table if not exists db_hive_demo.dept(
+					deptno int, 
+					dname string, 
+					loc string)
+				row format delimited fields terminated by '\t';
+
+				hive> create table if not exists db_hive_demo.emp(
+				empno int, 
+				ename string, 
+				job string, 
+				mgr int, 
+				hiredate string, 
+				sal double, 
+				comm double, 
+				deptno int)
+				row format delimited fields terminated by '\t';
+			2、导入数据
+				hive (default)> load data local inpath '/home/admin/Desktop/dept.txt' into table db_hive_demo.dept;
+				hive (default)> load data local inpath '/home/admin/Desktop/dept.txt' into table db_hive_demo.dept;
+		* Hive历史命令存放地
+			cat ~/.hivehistory
+			主要用于排查逻辑错误或者查看常用命令
+		* Hive临时生效设置
+			固定语法：set 属性名=属性值
+			例如：set hive.cli.print.header=false;
+		* Hive的内部表与外部表
+			伪代码：
+			hive> CREATE TABLE custom_table(id int, name string)  location '/custom/z/hive/somedatabase'
+			默认情况：inner
+				hive> CREATE INNER TABLE（报错）
+			显示指定：external
+				hive> CREATE EXTERNAL TABLE
+
+			内部表：
+				删除表数据时，连同数据源以及元数据信息同时删除
+			外部表：
+				1、只会删除元数据信息。
+				2、共享数据，外部表相对而言也更加方便和安全。
+
+			相同之处：
+				如果你导入数据时，操作于HDFS上，则会将数据进行迁移，并在metastore留下记录，而不是copy数据源。
+		* 分区表关键字
+			partitioned by (date string,hour string) -- 分区表的分区字段以逗号分隔
+		* 动态分区导入数据
+			# 开启动态分区设置
+			set hive.exec.dynamic.partition =true
+			set hive.exec.dynamic.partition.mode = nonstrict
+			# 导入未分区数据到分区表
+			insert overwrite table ods_usewater_action_log partition(dt) select语句
+		* Hive查看Mapreduce转换结构
+			例如：hive (db_web_data)> explain SELECT deptno, MAX(sal) FROM db_hive_demo.emp GROUP BY deptno;
+		* 常见函数
+			avg
+			sum
+			min
+			max
+			cast
+			case
+		  # 对时间格式的处理：原始 yyyy-MM-dd HH:mm:ss -> yyyyMMdd
+			concat(substr(time,1,4),substr(time,6,2),substr(time,9,2))
+		* HiveServer2
+			配置：hive-site.xml
+				hive.server2.thrift.port --> 10000
+				hive.server2.thrift.bind.host --> hadoop-senior03
+				hive.server2.long.polling.timeout -- > 5000（去掉L）
+			检查端口：
+				$ sudo netstat -antp | grep 10000
+			启动服务：（&表示后台运行）
+				$ bin/hive --service hiveserver2 &
+			连接服务：
+				$ bin/beeline
+				使用beeline 可以使用其他服务器连接本机开启的hiveserver2方便其他节点控制hive客户端
+				beeline> !connect jdbc:hive2://hadoop-senior03:10000 
+			尖叫提示：注意此时不能够执行MR任务调度，报错：
+			Job Submission failed with exception 'org.apache.hadoop.security.AccessControlException(Permission denied: user=anonymous, access=EXECUTE, inode="/tmp/hadoop-yarn":admin:supergroup:drwxrwx---
+
+		* UDF
+			写一个函数实现字段属性值的大小写转换
+			步骤：
+			自定义函数-->jar文件-->hive客户端输入命令添加jar包：
+				hive> add jar /home/xxx/xx.jar; -->
+				添加到位自定义函数:
+				hive> create temporary function 函数名 as '全类名';
+		
+		* order by，sort by，distribute by，cluster by
+			创建一个例子测试上述4个关键字
+			personId	company	money
+				p1		公司1	100
+				p2		公司2	200
+				p1		公司3	150
+				p3		公司4	300
+			建表导入数据：
+			create table company_info(
+				personId string,
+				company string,
+				money float
+			)row format delimited fields terminated by "\t"
+			load data local inpath “company_info.txt” into table company_info;
+			
+			(1)order by
+				hive中的order by语句会对查询结果做一次全局排序，即，所有的mapper产生的结果都会交给一个reducer去处理，
+			无论数据量大小，job任务只会启动一个reducer，如果数据量巨大，则会耗费大量的时间。
+		尖叫提示：如果在严格模式下，order by需要指定limit数据条数，不然数据量巨大的情况下会造成崩溃无输出
+				结果。涉及属性：set hive.mapred.mode=nonstrict/strict
+			(2)sort by
+				hive中的sortby语句会对每一块局部数据进行局部排序，即，每一个reducer处理的数据都是有序的，但是
+			不能保证全局有序。如果想保证全局有序，可以在sort by的基础之上做一次全局的归并排序。
+			(3)distribute by
+				hive中的distribute by一般要和sort by一起使用，即将某一块数据归给(distribute by)某一个reducer
+			处理，然后在指定的reducer中进行sort by排序。
+		尖叫提示：distribute by必须写在sort by之前
+			例如：不同的人（personId）分为不同的组，每组按照money排序。
+			select * from company_info distribute by personId sort by personId, money desc;
+			(4)cluster by
+				hive中的cluster by在distribute by和sort by排序字段一致的情况下是等价的。同时，
+			cluster by指定的列只能是降序，即默认的descend，而不能是ascend。
+			例如：写一个等价于distribute by 与sort by的例子
+			select * from company_info distribute by personId sort by personId;
+			等价于
+			select * from compnay_info cluster by personId;
+		
+		* 行转列、列转行（UDAF与UDTF）
+			(1)行转列
+			name	constellation	blood_type
+			孙悟空	白羊座			A
+			大海	射手座			A
+			宋宋	白羊座			B
+			猪八戒	白羊座			A
+			凤姐	射手座			A
+			创建表及数据导入：
+			create table person_info(
+			name string, 
+			constellation string, 
+			blood_type string) 
+			row format delimited fields terminated by "\t";
+			load data local inpath “person_info.txt” into table person_info;
+			
+			例如：把星座和血型一样的人归类到一起
+			select
+				t1.base,
+				concat_ws('|', collect_set(t1.name)) name
+			from
+				(select
+					name,
+					concat(constellation, ",", blood_type) base
+				from
+					person_info) t1
+			group by
+				t1.base;
+
+			(2)列转行
+				movie			category
+			《疑犯追踪》	悬疑,动作,科幻,剧情
+			《Lie to me》	悬疑,警匪,动作,心理,剧情
+			《战狼2》		战争,动作,灾难
+			创建表及导入数据：
+			create table movie_info(
+				movie string, 
+				category array<string>) 
+			row format delimited fields terminated by "\t"
+			collection items terminated by ",";
+			load data local inpath "movie.txt" into table movie_info;
+
+			例如：将电影分类中的数组数据展开
+			select
+				movie,
+				category_name 
+			from 
+				movie_info lateral view explode(category) table_tmp as category_name;
+		****lateral view explode(column):炸开指定列
+			
+		* 	fields terminated by：字段与字段之间的分隔符。
+			collection items terminated by：一个字段中各个子元素item的分隔符。
+		* 分桶
+			开始操作之前，需要将hive.enforce.bucketing属性设置为true，以标识Hive可以识别桶。
+			create table music(
+				id int,
+				name string,
+				size float)
+			row format delimited 
+			fields terminated by "\t"
+			clustered by (id) into 4 buckets;
+			该代码的意思是将music表按照id将数据分成了4个桶，插入数据时，会对应4个 reduce操作，输出4个文件。 
+		  在分区中分桶:
+				当数据量过大，需要庞大发分区数量时，可以考虑桶，因为分区数量太大的情况可能会导致文件系统
+			挂掉，而且桶比分区有更高的查询效率。数据最终落在哪一个桶里，取决于clustered by的那个列的值的
+			hash数与桶的个数求余来决定。虽然有一定离散行，但不能保证每个桶中的数据量是一样的。
+		
+		
+	4、hive数据清洗的思路
+		需求：执行周期性任务，每天的晚上6点，执行自动化脚本，
+			加载昨天的日志文件到HDFS，
+			同时分析网站的多维数据（PV,UV按照省份和小时数进行分类查询）
+			最后将查询的结果，存储在一张临时表中（表字段：date，hour，provinceId，pv，uv）存储在HIVE中，并且
+			将该临时表中的所有数据，存储到MySQL中，以供第二天后台开发人员的调用，展示。
+			1）定时加载本地数据到HDFS，涉及到：auto.sh，crontab
+			2）清洗数据，打包jar，定时执行，
+				/user/hive/warehouse/db_web_data.db/track_log/date=20150828/hour=18
+				part-000001
+				/user/hive/warehouse/db_web_data.db/track_log/date=20150828/hour=19
+				part-000001
+			3）建表track_log，也不需要建立现成的分区，临时指定清洗好的数据作为仓库源
+				alter table track_log add partition(date='20150828',hour='18') location
+				"/user/hive/warehouse/db_web_data.db/track_log/date=20150828/hour=18";
+				alter table track_log add partition(date='20150828',hour='18') location
+				"/user/hive/warehouse/db_web_data.db/track_log/date=20150828/hour=19";
+			4）开始分析想要的数据，将结果存储在Hive的临时表中
+				创建临时表：
+					create table if not exists temp_track_log(date string, hour string, provinceId string, pv string, uv string) 
+					row format delimited fields terminated by '\t';
+				向临时表中插入数据：
+					insert overwrite table temp_track_log select date, hour, provinceId, count(url) pv, count(distinct guid) uv 
+					from track_log where date='20150828' group by date, hour, provinceId;
+			5）使用自定义的JAR，导入本地导出的文件到MYsql或者使用Sqoop。
+	5、Sqoop
+		* Sqoop
+			（1）SQL-TO-HADOOP
+			（2）配置：
+				1、开启Zookeeper
+				2、开启集群服务
+				3、配置文件：
+					** sqoop-env.sh
+					#export HADOOP_COMMON_HOME=
+					export HADOOP_COMMON_HOME=/opt/modules/cdh/hadoop-2.5.0-cdh5.3.6/
+
+					#Set path to where hadoop-*-core.jar is available
+					#export HADOOP_MAPRED_HOME=
+					export HADOOP_MAPRED_HOME=/opt/modules/cdh/hadoop-2.5.0-cdh5.3.6/
+
+					#set the path to where bin/hbase is available
+					#export HBASE_HOME=
+
+					#Set the path to where bin/hive is available
+					#export HIVE_HOME=
+					export HIVE_HOME=/opt/modules/cdh/hive-0.13.1-cdh5.3.6/
+
+					#Set the path for where zookeper config dir is
+					#export ZOOCFGDIR=
+					export ZOOCFGDIR=/opt/modules/cdh/zookeeper-3.4.5-cdh5.3.6/
+					export ZOOKEEPER_HOME=/opt/modules/cdh/zookeeper-3.4.5-cdh5.3.6/
+
+				4、拷贝jdbc驱动到sqoop的lib目录下
+					cp -a mysql-connector-java-5.1.27-bin.jar /opt/modules/cdh/sqoop-1.4.5-cdh5.3.6/lib/
+				5、启动sqoop
+					$ bin/sqoop help查看帮助
+				6、测试Sqoop是否能够连接成功
+					$ bin/sqoop list-databases --connect jdbc:mysql://hadoop-senior01.itguigu.com:3306/metastore 
+					--username root \
+					--password 123456
+				7、sqoop实例：
+				RDBMS --> HDFS
+					使用Sqoop导入数据到HDFS
+						** 全部导入
+							$ bin/sqoop import \
+							--connect jdbc:mysql://hadoop-senior01.itguigu.com:3306/company \
+							--username root \
+							--password 123456 \
+							--table staff \
+							--target-dir /user/company \
+							--delete-target-dir \
+							--num-mappers 1 \
+							--fields-terminated-by "\t"
+						** 查询导入
+							 $ bin/sqoop import 
+							 --connect jdbc:mysql://hadoop-senior01.itguigu.com:3306/company 
+							 --username root 
+							 --password 123456 
+							 --target-dir /user/company 
+							 --delete-target-dir 
+							 --num-mappers 1 
+							 --fields-terminated-by "\t" 
+							 --query 'select name,sex from staff where id >= 2 and $CONDITIONS;'
+						** 导入指定列
+							$ bin/sqoop import 
+							 --connect jdbc:mysql://hadoop-senior01.itguigu.com:3306/company 
+							 --username root 
+							 --password 123456 
+							 --target-dir /user/company 
+							 --delete-target-dir 
+							 --num-mappers 1 
+							 --fields-terminated-by "\t"
+							 --columns id, sex
+							 --table staff
+						** 使用sqoop关键字筛选查询导入数据
+							$ bin/sqoop import 
+							 --connect jdbc:mysql://hadoop-senior01.itguigu.com:3306/company 
+							 --username root 
+							 --password 123456 
+							 --target-dir /user/company 
+							 --delete-target-dir 
+							 --num-mappers 1 
+							 --fields-terminated-by "\t"
+							 --table staff
+							 --where "id=3"
+
+					RDBMS --> Hive
+						1、在Hive中创建表（不需要提前创建表，会自动创建）
+							hive (company)> create table staff_hive(id int, name string, sex string) row format delimited fields terminated by '\t';
+						2、向Hive中导入数据
+							$ bin/sqoop import 
+							--connect jdbc:mysql://hadoop-senior01.itguigu.com:3306/company 
+							--username root 
+							--password 123456 
+							--table staff 
+							--num-mappers 1 
+							--hive-import 
+							--fields-terminated-by "\t" 
+							--hive-overwrite 
+							--hive-table company.staff_hive
+
+					Hive/HDFS --> MYSQL
+						1、在Mysql中创建一张表
+						$ bin/sqoop export 
+						--connect jdbc:mysql://hadoop-senior01.itguigu.com:3306/company 
+						--username root 
+						--password 123456
+						--table staff_mysql
+						--num-mappers 1 
+						--export-dir /user/hive/warehouse/company.db/staff_hive
+						--input-fields-terminated-by "\t"
+		
+		
+		
+		

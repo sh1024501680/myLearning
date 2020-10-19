@@ -1,0 +1,371 @@
+一、MyBatis
+	(1)简介
+		MyBatis 是支持定制化 SQL、存储过程以及高级映射的优秀的持久层框架。
+
+		MyBatis 避免了几乎所有的 JDBC 代码和手动设置参数以及获取结果集。
+
+		MyBatis可以使用简单的XML或注解用于配置和原始映射，将接口和Java的POJO
+		（Plain Old Java Objects，普通的Java对象）映射成数据库中的记录.
+	
+	(2)为什么要使用MyBatis
+		MyBatis是一个半自动化的持久化层框架。
+		JDBC
+			SQL夹在Java代码块里，耦合度高导致硬编码内伤
+			维护不易且实际开发需求中sql是有变化，频繁修改的情况多见
+		Hibernate和JPA
+			长难复杂SQL，对于Hibernate而言处理也不容易
+			内部自动生产的SQL，不容易做特殊优化。
+			基于全映射的全自动框架，大量字段的POJO进行部分映射时比较困难。导致数据库性能下降。
+		对开发人员而言，核心sql还是需要自己优化
+			sql和java编码分开，功能边界清晰，一个专注业务、一个专注数据。
+
+	(3)HelloWorld
+		1.使用底层的selectOne()方法
+			helloWorld的小结:
+			    -导入Mybatis的jar包
+			    -创建一个全局配置文件  mybatis-config.xml ,根据全局配置文件，创建了一个SqlSessionFactory对象.
+			    -创建一个sql映射文件, EmployeeMapper.xml,该配置文件中配置了sql语句.
+			    -将sql映射文件注册到全局配置文件中
+			    -从SqlSessionFactory中获取SqlSession对象. sqlSession代表和数据库的一次会话.
+			    -然后调用selectOne("sql语句的唯一标识",执行sql的参数)完成查询操作.
+			    -最后将SqlSession对象关闭.释放资源.
+		2.使用Mapper接口开发
+			Mapper接口的好处:
+				-接口中定义的方法有明确的类型约束(方法参数的类型   方法返回值的类型)
+			    -接口本身:
+			    	接口本身就是抽象.抽出了规范.不强制要求如何做具体的实现.可以使用jdbc，hibernate，Mybatis.
+			    	接口将规范与具体的实现分离.
+				Mapper接口开发， MyBatis会为接口生成代理实现类。代理对象完成具体的增删改查操作.
+				最底层还是使用selectOne,update等方法来完成的.
+			
+			Mapper接口开发需要注意:
+				1.Mapper接口要与sql映射文件动态绑定. sql映射文件的namespace指定成接口的全类名.
+			    2.Mapper接口方法与sql映射文件的sql语句绑定。  sql语句的id值指定成接口中的方法名.
+			
+二、配置文件
+	(1)全局配置文件
+		顺序：<!--顺序
+				  <configuration>     配置
+					<properties />      属性
+					<settings />        设置
+					<typeAliases />     类型命名  （起别名）
+					<typeHandlers />    类型处理器
+					<objectFactory />   对象工厂
+					<plugins />         插件
+					<environments>      配置环境
+						<environment>   环境变量
+							<transactionManager />事务管理器
+							<dataSource />        数据源
+						</environment>
+					</environments>
+					<databaseIdProvider />    数据库厂商标识
+					<mappers />               映射器
+				  </configuration>
+			  -->
+		1.properties
+			<!-- 
+				properties: Mybatis可以是用properties来引入外部properties类型的文件.
+					resource: 引入类路径下的资源
+					url: 引入网络路径或者是磁盘路径下的资源
+			 -->
+			<properties resource="db.properties" ></properties>
+			
+		2.settings
+			<!-- 
+				settings: 包含了很多重要的设置项
+					setting: 用来设置每一个设置项
+						name:设置项的名称
+						value:设置项的值
+			 -->
+			 <settings>
+				<!-- 自动映射下划线到驼峰命名    DB: last_name  autoMapping  lastName -->
+				<setting name="mapUnderscoreToCamelCase" value="true"/>
+			 </settings>
+			 
+		3.typeAliases
+			<!-- 
+				typeAliases:别名处理,为java 类型注册别名
+					typeAlias: 为某个java类指定别名
+						type: 指定java的类型（包名+ 类名）
+						alias: 指定具体的别名。 如果alias不显示的指定，则默认的别名是类名的首字母小写. 
+								  别名不区分大小写。
+					package: 批量取别名.
+						 name：指定包名。   为该包下的所有的类取默认的别名。
+						 批量取别名可能会出现别名冲突的情况. 例如指定的包下与子包下有相同的类.
+						 可以使用@Alias("别名")在类上标注具体的别名.
+			  -->
+			  <typeAliases>
+				<package name="com.atguigu.mybatis.beans"/>
+				<!-- <typeAlias type="com.atguigu.mybatis.beans.Employee" alias="emp" /> -->
+			  </typeAliases>
+			  
+		4.environments
+			<!--
+				environments: 环境们。  使用default来指定具体使用的环境.
+					 environment:配置具体的环境.
+						id: 当前环境的标识
+						transactionManager:事务管理器
+							type: 配置具体的事务管理器的类型
+								JDBC: JdbcTransactionFactory
+								MANAGED:ManagedTransactionFactory			
+						最终: 事务管理要交给Spring. 使用Spring的声明式事务.		 	
+						dataSource:数据源
+							type: 执行数据源的类型.
+								UNPOOLED:不是用连接池 UnpooledDataSourceFactory
+								POOLED:使用连接池  PooledDataSourceFactory
+								JNDI:从web服务器中获取数据源.  JndiDataSourceFactory			 
+						最终: 数据源交给Spring管理
+			  -->
+			<environments default="mysql">
+				<environment id="mysql">
+					<transactionManager type="JDBC" />
+					<dataSource type="POOLED">
+						<property name="driver" value="${jdbc.driver}" />
+						<property name="url" value="${jdbc.url}" />
+						<property name="username" value="${jdbc.username}" />
+						<property name="password" value="${jdbc.password}" />
+					</dataSource>
+				</environment>
+				<environment id="oracle">
+					<transactionManager type="JDBC"></transactionManager>
+					<dataSource type="POOLED">
+					</dataSource>
+				</environment>
+			</environments>
+			
+		5.databaseIdProvider
+			<!-- 
+				databaseIdProvider:
+					Mybatis用来支持多数据库厂商。Mybatis可以根据不同的数据库执行不同的sql语句
+					DB_VENDOR: VendorDatabaseIdProvider 作用就是得到数据库厂商的标识名.
+							   Connection.getMetaData().getDataBaseProductName();	
+					常见的数据库厂商的标识名:
+						MySQL:  MySQL
+						Oracle: Oracle
+						SQL Server:  SQL Server		
+			 --> 
+			 <databaseIdProvider type="DB_VENDOR">
+				<!-- 为数据库厂商的标识名起别名 -->
+				<property name="MySQL" value="mysql"/>
+				<property name="Oracle" value="oracle"/>
+				<property name="SQL Server" value="sqlserver"/>
+			 </databaseIdProvider>
+			
+		6.mappers
+			<!-- 
+				mappers: 引入sql映射文件
+					mapper: 引入单个的sql映射文件
+						resource: 引入类路径下的sql映射文件
+						url:引入网络路径或者是磁盘路径下的sql映射文件.
+					package: 批量引入sql映射文件
+							 要求: 
+							   1.sql映射文件的名字与 Mapper接口的名字一致.
+							   2.Sql映射文件与Mapper接口必须在同一目录下.
+						name:指定包名	    		 
+			 -->
+			<mappers>
+				<!-- <mapper resource="mybatis/config/EmployeeMapper.xml"/> -->
+				<package name="com.atguigu.mybatis.dao"/>
+			</mappers>
+			
+	(2)sql映射文件
+		1.增删改查
+			<insert id=""  parameterType="" databaseId="" >
+			<update>
+			<delete>
+			<select id="" parameterType="" resultType=""  databaseId="">
+			如果想要获取到增删改对数据的影响条数,可以直接在接口的方法中声明返回值类型即可.
+		2.主键自增以及主键值的返回
+			a.对于支持自增主键的数据库(Mysql),可以使用useGeneratedKeys="true" keyProperty="javaBean的属性"
+			b.对于不支持自增主键的数据库(oracle),使用selectKey的子标签完成主键值得返回.
+				selectKey的用法:
+					BEFORE: selectKey在插入语句之前执行
+					AFTER:  selectKey在插入语句之后执行
+			c.Oracle数据库的自增策略:
+				使用序列模拟自增. 可以从序列中查询 nextval  currval.
+
+		3.参数传递：
+			单个参数(普通类型(基本类型/包装类型+String)):  Mybatis不会做特殊的处理 
+				取值: #{参数名(随便写)} 取出参数值
+			多个参数:MyBatis会做特殊处理. 多个参数会被封装成一个Map。
+				封装map的规则:
+				key: param1 ,param2 , param3 ..... paramN / 0 1 2 ....N-1
+			    value:具体传入的参数值
+		    异常: ### Cause: org.apache.ibatis.binding.BindingException: Parameter 'id' not found.
+				Available  parameters are [1, 0, param1, param2]
+			    解决: 取值使用#{param1/ 0}  #{param2 / 1 }
+			命名参数**: 明确的指定多个参数封装map的时候所使用的key。   @Param("key")
+				取值: #{@Param指定的key/paramN}
+				POJO:如果参数很多,正好又是业务逻辑的数据模型中的属性，直接传入POJO
+				取值: #{POJO的属性名}
+			Map:如果参数很多，不是业务逻辑的数据模型中的属性，可以封装成map传入.
+				取值: #{map中的key}
+			参数值的获取方式:
+			#{}:可以获取map中的值 或者是POJO对象属性的值。 还可以直接获取普通类型的参数.
+			${}:可以获取map中的值 或者是POJO对象属性的值
+
+			区别: 
+			    #{}:是以预编译的形式将参数设置到sql语句中. PreparedStatement  防止sql注入.
+			    ${}:取出的值直接拼装到sql语句中.会有安全问题.
+			使用场景:
+				大部分情况下推荐使用#{},原生的jdbc不支持占位符的地方可以使用${}来进行动态的赋值.
+			    eg: select  xxxxx    from    where  条件  order by 排序字段  排序方式  limit ?,?;
+			    分表:
+					select * from 2016_salary ;
+					select * from 2017_salary ; 
+					select * from ${year}_salary ;
+				    用户选择2016年，则从2016_salary表查
+		4.select查询返回List/Map
+			查询多条数据返回List：
+					如果使用的是自动映射，resultType指定的是集合中元素的类型。或者是理解为想让MyBatis将
+				一条数据封装成哪种类型的java对象。就制定哪种类型。
+			查询返回Map：
+				a.查询一条数据返回Map，MyBatis会自动使用表的列名作为key，列值作为value返回
+				b.查询多条数据返回Map，需要使用@MapKey("key")指定封装map的时候所使用的key，
+				  Map中的value就是一条数据封装成的Java对象。
+		5.resultMap自定义映射
+			a.association  用来映射联合属性
+				<!-- 映射关联属性. -->
+				<association property="dept" javaType="com.atguigu.mybatis.beans.Department">
+					<id column="did" property="id"/>
+					<result column="dept_name" property="departmentName"/>
+				</association>
+			  association可以使用分步查询，使用分布查询可以使用延迟加载。
+			  <!-- 
+				使用association进行分步查询:
+					结果: Employee 包含 Department
+					过程:
+						1.先按照员工的id查询员工信息（d_id）
+						2.再通过d_id外键信息查询对应的部门信息
+						3.把查出的部门信息设置到员工中.
+			  -->
+			  <association property="dept" javaType="com.atguigu.mybatis.beans.Department"
+					select="com.atguigu.mybatis.mapper.DepartmentMapper.getDeptById"
+					column="d_id">
+			  </association>
+			  延迟加载:
+					分步查询的时候使用延迟加载:
+					结果: Employee 包含 Department
+					过程: 分步查询
+					期望: 每次查询Employee的时候 不要立即将Department查询出来，而是等到使用Department的时候再去查询对应的信息
+					在全局配置文件中的settings中开启两个配置:
+			  	<setting name="lazyLoadingEnabled" value="true"/>
+			  	<setting name="aggressiveLazyLoading" value="false"/>
+			b.collection  用来映射集合类型的联合属性
+				<!-- collection: 映射集合类型的关联属性 -->
+				<collection property="emps" ofType="com.atguigu.mybatis.beans.Employee">
+					<id column="eid" property="id"/>
+					<result column="last_name" property="lastName"/>
+					<result column="gender" property="gender"/>
+					<result column="email" property="email"/>
+				</collection>
+			  collection使用分步查询
+			    <collection property="emps" ofType="com.atguigu.mybatis.beans.Employee"
+					select="com.atguigu.mybatis.mapper.EmployeeMapper.getEmpsByDeptId"
+					column="id">
+				</collection>
+		6.动态sql
+			if:用于条件判断。test属性写OGNL表达式
+			
+			where:用于解决拼装sql的时候where以及起那么多出或者少and的问题
+			
+			trim:用于解决拼装sql的时候前面或者后面缺失或者多出某些字符的问题
+			
+			set:用于解决修改操作拼装SQL的时候","的问题
+			
+			choose:类似于带了break的switch case 语句。when 可出现多出，otherwise出现异常
+			
+			foreach:主要用于对集合的遍历
+					使用foreach完成MySQL的批量操作
+			
+		7.内置参数
+			a._parameter:代表整个参数
+						 如果是单个参数，则代表整个参数
+						 如果是多个参数，MyBatis汇丰在map，_parameter代表封装后的map。
+			b._databaseId:
+						  如果配置了databaseIdProvider，_databaseId代表当前使用的数据库的别名。
+		
+		8.抽取可重用sql
+			可以使用<sql id=""></sql>将重复使用率高的sql语句抽取出了，方便多次使用。
+			在使用的地方可以用<include refid="">来引用已经抽取好的sql。
+	(3)缓存机制
+		1.一级缓存
+			一级缓存（本地缓存） 
+				SqlSession级别的缓存,本质上就是SqlSession级别的一个map。
+				每一个SqlSession对象都自己的一级缓存.互不共享.
+				一级缓存是默认开启的
+				工作机制: 与数据库的一次会话期间（通过一个SqlSession,查询到的数据会放在一级缓存中.
+						  以后如果需要获取相同的数据,直接从缓存中获取,而不需要发送sql到数据库查询.
+			一级缓存失效的情况:
+				1.SqlSession不同.     	
+				2.SqlSession相同,但是查询条件不同.  
+				3.SqlSession相同,但是在两次查询期间执行了增删改的操作.
+				4.SqlSession相同,手动清除了一级缓存.
+		2.二级缓存
+			二级缓存（全局缓存 基于namespace级别的缓存. 二级缓存默认是关闭的，必须手动配置开启.
+	  		工作机制:
+				a.一个会话(SqlSession)，查询一条数据,这个数据就会被放在当前会话的一级缓存中.
+				b.如果会话提交或者关闭,一级缓存中的数据会被保存到二级缓存中.
+	  	
+	  		使用步骤:
+				a.在全局配置文件中开启二级缓存:
+				   <setting name="cacheEnabled" value="true"/>
+				b.在想要使用二级缓存的sql映射文件中配置使用二级缓存:
+				   <cache></cache>
+				c.我们的POJO需要实现序列化接口.
+		3.缓存相关的设置
+			a.cacheEnabled=false:关闭的是二级缓存,一级缓存依旧可以使用.
+			b.每一个select标签都useCache=true属性.
+					如果useCache=false:  不使用二级缓存，依旧使用一级缓存.
+			c.每一个增删改标签都有flushCache=true属性:
+				在两次查询期间做了增删改操作,一二级缓存都会清除.
+				每一个查询标签都有flushCache=false,如果改为true,每次查询之后都会清除缓存，缓存是没被使用的.
+			d.sqlSession.clearCache(): 只会清空当前session的一级缓存.
+			  
+			 e.localCacheScope:设置一级缓存(本地缓存)的作用域。
+				SESSION :会话期间
+				STATEMENT:可以禁用一级缓存.
+		4.整合第三方的缓存
+		    a.导入Ehcache的jar包  以及适配包
+				ehcache-core-2.6.8.jar
+				mybatis-ehcache-1.0.3.jar
+				slf4j-api-1.6.1.jar
+				slf4j-log4j12-1.6.2.jar
+			b.配置Ehcache的配置文件
+				 
+			c.在映射文件中配置使用Ehcache
+				<cache type="org.mybatis.caches.ehcache.EhcacheCache"></cache>
+	(4)逆向工程
+		1.导入需要的jar包
+		2.配置逆向工程需要的配置文件 mbg.xml
+		3.运行逆向工程代码
+	(5)分页插件
+		1.导入需要的包
+		2.在全局配置文件中配置插件
+			<plugins>
+				<!-- 注册分页插件 -->
+				<plugin interceptor="com.github.pagehelper.PageInterceptor"></plugin>
+			</plugins>
+		3.编码测试 ，使用分页插件
+			a.在查询之前设置分页信息   
+			   Page<Object> page = PageHelper.startPage(2,2);
+			b.在查询之后，将查到的结果设置到PageInfo中，获取更详细的分页信息
+			  PageInfo<Employee> info = new PageInfo<Employee>(emps,5);
+	(6)SSM整合步骤:
+		1.导入需要用到的jar包
+			a.Spring相关的jar包
+		    b.SpringMVC相关的jar包
+		    c.MyBatis相关的jar包
+		    d.连接池、数据库驱动、日志等
+		    e.MyBatis与Spring的适配包
+		2.MyBatis环境的搭建
+			a.MyBatis的全局配置文件  mybatis-config.xml  保留一些MyBatis相关的设置,将连接、事务等迁移到Spring中.
+		    b.JavaBean、Mapper接口、Sql映射文件.
+		3.Spring + SpringMVC环境的搭建
+			a.web.xml中配置启动SpringIOC容器的监听器    以及  SpringMVC的前端控制器
+		    b.Spring配置文件的编写  applicationContext.xml
+		    c.SpringMVC配置文件的编写 springmvc.xml
+		4.整合
+			a.创建SqlSessionFactory进而能得到SqlSession
+		    b.生成Mapper接口的代理实现类
+

@@ -1,0 +1,225 @@
+一、Spark概述
+	(1)Spark 是专为大规模数据处理而设计的快速通用的计算引擎。
+	
+	(2)	Spark，拥有Hadoop MapReduce所具有的优点；但不同于MapReduce的
+	是——Job中间输出结果可以	保存在内存中，从而不再需要读写HDFS，
+	因此Spark能更好地适用于数据挖掘与机器学习等需要迭代的MapReduce的算法。
+	
+	(3)Spark 是在 Scala 语言中实现的
+	
+	(4)Spark 主要有三个特点：
+		1.首先，高级 API 剥离了对集群本身的关注，Spark 应用开发者可以专注于应用所要做的计算本身。
+		2.其次，Spark 很快，支持交互式计算和复杂算法。
+		3.最后，Spark 是一个通用引擎，可用它来完成各种各样的运算，包括 SQL 查询、文本处理、机器
+		学习等，而在 Spark 出现之前，我们一般需要学习各种各样的引擎来分别处理这些需求。
+	(5)Spark 的内置项目：
+		Spark Core:实现了Spark的基本功能，包含任务调度、内存管理、错误恢复、与存储
+				   系统交互等模块。Spark Core中还包含了对于弹性分布式数据及RDD的API定义。
+		Spark SQL:是Spark用来操作结构化数据的工具包。通过Spark SQL，我们可以使用SQL或者ApacheHive
+				  版本的SQL方言来查询数据。Spark SQL支持多种数据源，如Hive表、Parquet以及JSON等。
+		Spark Streaming:是Spark提供的对实时数据进行流式计算的组件。提供了用来操作数据流的API，
+					    并且与Spark Core中的RDD API高度对应。
+		Spark MLlib:提供常见的机器学习(ML)功能的程序库。包括分类、回归、聚类、协同过滤等，还提供了
+				    模型评估、数据导入等额外的支持功能。
+		集群管理器:Spark设计为可以高效地在一个和计算节点到数千个计算节点之间伸缩计算。为了实现这样
+				   的要求，同时获得最大灵活性，Spark支持在各种集群管理器(cluster manager)上运行，
+				   包括(Hadoop YARN)、Apache Mesos，以及Spark自带的一个简易调度器，叫做独立调度器。
+二、Spark的安装
+	安装前准备：
+		Linux虚拟机3台(需要Java环境)、Spark安装包(适配Hadoop版本)
+	(1)解压安装包到指定位置：
+		tar -xf spark-2.1.1-bin-hadoop2.7.tgz -C /opt/install/
+	(2)配置Spark(standalone)：进入Spark目录下(/opt/install/spark-2.1.1-bin-hadoop2.7)
+		$ cp slaves.template slaves
+		$ vim slaves (添加作为work节点的主机名或IP地址)
+		$ cp spark-env.sh.template spark-env.sh
+		$ vim spark-env.sh  
+			1.添加如下配置：
+				SPARK_MASTER_HOST=Hadoop01   (含义为作为Spark的master节点的机器)
+				SPARK_MASTER_PORT=7077        (Spark默认端口)
+			2.高可用配置(需先启动zookeeper)：
+				*删除单master时配置的SPARK_MASTER_HOST属性
+				添加如下配置：
+				export SPARK_DAEMON_JAVA_OPTS="
+							-Dspark.deploy.recoveryMode=ZOOKEEPER
+							-Dspark.deploy.zookeeper.url=hadoop01,hadoop02,hadoop03
+							-Dspark.deploy.zookeeper.dir=/spark"
+				
+	(3)配置Job History Server
+		$ cp spark-default.conf.template spark-default.conf
+		$ vim spark-default.conf 添加如下内容
+			spark.master		spark://hadoop01:7077
+			spark.eventLog.enabled  true
+			spark.eventLog.dir    hdfs://mycluster/directory  
+			(小提示，hadoop高可用集群使用集群别名作为hdfs的URL时需要将hadoop的core-site.xml
+			以及hdfs-site.xml复制在当前配置文件目录下或以软链接的形式在当前配置文件目录创建)
+		$ vim spark-env.sh
+			export SPARK_HISTORY_OPTS="-Dspark.history.ui.port=4000
+									   -Dspark.history.retainedApplications=3
+									   -Dspark.history.fs.logDirectory=hdfs://mycluster/directory"
+			参数介绍：spark.history.ui.port=4000 --> 调整WEBUI访问端口号为4000
+			spark.history.retainedApplications=3 --> 指定保存Application的历史记录的个数，如果
+									超过这个值，旧的应用程序信息将被删除，这个是内存中的应用数
+			spark.history.fs.logDirectory --> 配置了改属性，start-history-server.sh无需显示指定
+									路径，SPARK History Server页面只展示该路径下的信息
+	(4)同步配置文件到集群所有节点			
+三、Spark Core
+	Spark Core的核心工作：操作RDD
+		RDD的创建->转换->缓存->行动->输出
+	(1)Spark RDD：
+		RDD：弹性分布式数据集
+		RDD是整个Spark的计算基石。是分布式数据的抽象，为用户屏蔽了地层复杂的计算和映射环境。
+		RDD是不可变的，如果在一个RDD上进行转换操作，则会生成一个新的RDD
+		RDD是分区的，RDD里面的具体数据是分布在多台机器上的Executor里面的。堆内内存和堆外内存+磁盘
+		RDD是弹性的：
+			存储：Spark会根据用户的配置或者当前Spark的应用运行情况自动将RDD的数据缓存到内存或磁盘。
+				  他是一个对用户不可见的封装的功能。
+			容错：当你的RDD数据被删除或者丢失的时候，可以通过血统或者检查点机制恢复数据。
+			计算：计算是分层的，有应用->Job->Stage->TaskSet-Task  每一层都有对应的计算的保障与重复
+				  机制。保障你的计算不会由与一些突发因素而终止。
+			分片：你可以根据业务需求或者一些算子来重新调整RDD中的数据分布。	
+		
+		RDD的三种创建方式：
+			1.可以从一个Scala集合里面创建
+				sc.parallelize(seq)  把seq这个数据并行化分片到节点
+				sc.makeRDD(seq)  把seq这个数据并行化分片到节点，他的实现就是parallelize
+				sc.makeRDD(seq[(T,seq)])  这种方式可以指定RDD的存放位置
+			2.从外部存储来创建  sc.textFile("FilePath")
+			3.从另外一个RDD转换而来
+		
+		RDD的操作针对两种类型的RDD：
+			数值RDD
+			键值对RDD
+		RDD的操作分为2种：转换(transformations)和行动(action)
+			转换：通过操作将一个RDD转换成另外一个RDD
+			行动：将一个RDD进行求值或输出
+			(RDD的所有转换操作都是懒执行的，只有当行动操作出现spark才真的去运行)
+		常用的转换算子(transformations)：
+			def map[U:ClassTag](f:T=>U):RDD[U]  将函数应用于RDD的每一元素，并返回一个新的RDD
+			def filter(f:T=>Boolean):RDD[T]  通过提供的产生boolean条件的表达式来返回结果为True的新的RDD
+			def flatMap[U:ClassTag](f:T=>TraversableOnce[U]):RDD[U]  将函数应用于RDD中的每一项，
+											对于每一项都产生一个集合，并将集合中的元素压扁成一个集合
+			def mapPartitions[U:ClassTag](f:Iterator[T]=>Iterator[U],preservesPartitioning:Boolean=false):RDD[U]
+				将函数应用于RDD的每一个分区，每一个分区运行一次，函数需要能够接受Iterator类型，然后返回Iterator
+			def mapPartitionsWothIndex  将函数应用于RDD中的每一个分区，每一个分区运行一次，函数能够
+					接受一个分区的索引值和一个代表分区内所有数据的Iterator类型，需要返回Iterator类型
+			def sample(withReplacement:Boolean,fraction:Double,seed:Long={})  在RDD中以seed为种子
+					返回大致上有fraction比例个数据样本RDD，withReplacement表述是否采用放回式抽样	
+			def union(other:RDD[T]):RDD[T]  将两个RDD中的元素合并，并返回一个新的RDD
+			def intersection(other:RDD[T]):RDD[T]  将两个RDD中的元素做交集，并返回一个新的RDD
+			def distinct():RDD[T]  将当前RDD进行去重后，返回一个新的RDD
+	   <k,v>def partitionBy(partitioner:Partitioner):RDD[(K,V)]  根据设置的分区器重新将RDD进行分区，返回新的RDD
+	   <k,v>def reduceByKey(func:(V,V)=>V):RDD[(K,V)]  根据Key值将相同Key的元组的值用func计算，返回新的RDD
+	   <k,v>def groupByKey():RDD[(K,Iterable[V])]  将相同的Key值聚集，输出一个(K,Iterable[V])的RDD
+	   <k,v>def combineByKey(createCombiner:V=>C,
+							mergeValue:(C,V)=>C,
+							mergeCombiners:(C,C)=>C,
+							numPartitions:Int):RDD[(K,C)]
+					根据Key分别使用CreateCombiner和mergeValue进行相同key的数据聚集，通过mergeCombiners将
+				各个分区最终的结果进行聚集。
+	   <k,v>def aggregateByKey[U:ClassTag](zeroValue:U,partitioner:Partitioner)(seqOp:(U,V)=>U,comOp:(U,U)=>U):RDD[(K,U)]
+				通过seqOp函数将每一个分区里面的数据和初始值迭代代入函数返回最终值，comOp将每一个分区
+				返回的最终值根据key进行合并操作。
+	   <k,v>def foldByKey(zeroValue: V,partitioner: Partitioner)(func: (V, V) => V): RDD[(K, V)]	
+				aggregateByKey的简化操作，seqop和combop相同
+	   <k,v>def sortByKey(ascending:Boolean=true,numPartitions:Int=self.partitions.length):RDD[(K, V)]
+				在一个(K,V)的RDD上调用，K必须实现Ordered接口，返回一个按照key进行排序的(K,V)的RDD
+			def sortBy[K](f:(T)=>K,ascending:Boolean=true,numPartitions:Int=this.partitions.length)
+			(implicit ord:Ordering[K],ctag:ClassTag[K]):RDD[T]  底层实现还是使用sortByKey，只不过使用fun生成的新key进行排序
+	   <k,v>def join[W](other: RDD[(K, W)], partitioner: Partitioner): RDD[(K, (V, W))]    在类型为(K,V)和(K,W)的RDD上调用，
+				返回一个相同key对应的所有元素对在一起的(K,(V,W))的RDD。需要注意的是，他只会返回key在两个RDD中都存在的情况
+	   <k,v>def cogroup[W](other: RDD[(K, W)], partitioner: Partitioner): RDD[(K, (Iterable[V], Iterable[W]))]
+					在类型为(K,V)和(K,W)的RDD上调用，返回一个(K,(Iterable<V>,Iterable<W>))类型的RDD，注意，如果
+				V和W的类型相同，也不放在一块，还是单独存放.
+			def cartesian[U: ClassTag](other: RDD[U]): RDD[(T, U)]  做两个RDD的笛卡尔积，返回对偶的RDD
+			def pipe(command: String): RDD[String]  对于每个分区，都执行一个perl或者shell脚本，返回输出的RDD。
+				注意，如果你是本地文件系统中，需要将脚本放置到每个节点上
+			def coalesce(numPartitions: Int, shuffle: Boolean = false,
+							partitionCoalescer: Option[PartitionCoalescer] = Option.empty)
+            				(implicit ord: Ordering[T] = null)
+					 缩减分区数，用于大数据集过滤后，提高小数据集的执行效率
+			def repartition(numPartitions: Int)(implicit ord: Ordering[T] = null): RDD[T]
+					根据你传入的分区数重新通过网络分区所有数据，重型操作
+	   <k,v>def repartitionAndSortWithinPartitions(partitioner: Partitioner): RDD[(K, V)]
+					性能要比repartition要高。在给定的partitioner内部进行排序
+			def glom():RDD[Array[T]]    将每一个分区形成一个数组，形成新的RDD类型时RDD[Array[T]]
+			def mapValues[U](f: V => U): RDD[(K, U)]   将函数应用于（k，v）结果中的v，返回新的RDD
+			def subtract(other: RDD[T]): RDD[T]  计算差的一种函数去除两个RDD中相同的元素，不同的RDD将保留下来
+			
+			
+			
+			
+		行动算子(action)：
+			def takeSample(withReplacement:Boolean,num:Int,seed:Long):Array[T]  抽样但是返回一个scala集合
+			def reduce(f: (T, T) => T): T   通过func函数聚集RDD中的所有元素
+			def collect(): Array[T]  在驱动程序中，以数组的形式返回数据集的所有元素
+			def count(): Long   返回RDD中的元素个数
+			def first(): T   返回RDD中的第一个元素
+			def take(num: Int): Array[T]  返回RDD中的前n个元素
+			def takeOrdered(num: Int)(implicit ord: Ordering[T])   返回前几个的排序
+			def aggregate[U: ClassTag](zeroValue: U)(seqOp: (U, T)=> U, combOp:(U, U)=>U):U  	
+					aggregate函数将每个分区里面的元素通过seqOp和初始值进行聚合，然后用
+				combine函数将每个分区的结果和初始值(zeroValue)进行combine操作。这个函数
+				最终返回的类型不需要和RDD中元素类型一致
+			def fold(zeroValue: T)(op:(T, T) => T): T  折叠操作，aggregate的简化操作，seqop和combop一样
+			def saveAsTextFile(path: String): Unit   将RDD以文本文件的方式保存到本地或者HDFS中
+			def saveAsObjectFile(path: String): Unit  将RDD中的元素以序列化后对象形式保存到本地或者HDFS中。
+			def countByKey(): Map[K, Long]  针对(K,V)类型的RDD，返回一个(K,Int)的map，表示每一个key对应的元素个数
+			def foreach(f: T => Unit): Unit  在数据集的每一个元素上，运行函数func进行更新
+		
+		RDD的依赖关系
+		1、RDD的依赖关系分为窄依赖和宽依赖。
+		2、窄依赖是说父RDD的每一个分区最多被一个子RDD的分区应用，也就是他的出度为1。
+		3、宽依赖是说父RDD的每一个分区被多个子RDD的分区来应用，也就是他的出度大于等于2.
+		4、应用在整个过程中，RDD之间形成的产生关系，就叫做血统关系，RDD在没有持久化的时候
+		   默认是不保存的，如果需要那么就要根据血统关系来重新计算。
+		5、应用在执行过程中，是分为多个Stage来进行的，划分Stage的关键就是判断是不是存在
+		   宽依赖。从Action往前去推整个Stage的划分。
+
+		
+		
+		
+	(2)spark提交应用程序
+		****Spark提交应用程序
+			1.进入到spark安装目录的bin，调用Spark-submit脚本
+			2.在脚本后传入参数
+				--class  你的应用的主类
+				--master  你的应用运行的模式 Local、Local[N]、Spark://hostname:port、Mesos、Yarn-client、Yarn-cluster
+				[可选]  指定 --deploy-mode 为 client模式或cluster模式
+				应用jar包的位置
+				应用的参数
+		
+		****Spark调试
+			本地调试[以单节点的方式运行整个Spark应用]：
+				1、写好程序
+				2、将master设置为local或者local[n]
+				3、报错winutils.exe找不到，将HADOOP_HOME环境变量加入IDEA
+				4、Debug调试
+			远程调试[把IDEA当做Driver，保持和整个Spark集群的连接关系]
+			前提：本机和spark集群在同一网段
+			1、写好程序
+			2、将master设置为spark集群地址[spark://hostname:port]
+			3、将最终需要运行的jar包加入到setJar方法中
+			4、设置本地地址到spark.driver.host这个变量中
+			5、Debug调试
+				
+四、SparkSQL			
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				

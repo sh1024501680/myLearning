@@ -1,0 +1,508 @@
+一、常用命令
+	1、文件目录类
+		1) pwd  显示当前路径
+		2) ls  列出目录内容
+			  -a  显示隐藏文件
+			  -l  列出文件属性权限等
+		3) mkdir  创建一个空目录
+			  -p  创建多层目录
+		4) rmdir  删除一个空目录
+		5) touch  创建一个新文件
+		6) cd  切换目录
+			  cd  回到当前用户家目录
+			  cd -  回到上次所在目录
+			  cd ..  当前目录的上一级目录
+			  cd -P  跳转到实际物理路径,而非快捷方式路径
+		7) cp  复制文件或目录
+			  cp 源文件 目标文件
+			  cp -r 源文件(目录) 目标文件(目录)  递归复制
+		8) rm  删除文件或目录
+			  -r  递归删除
+			  -f  强制删除
+			  -rf  强制递归删除
+		9) mv  移动文件、目录或重命名
+			  mv oldFileName newFileName  重命名
+			  mv source targetFolder  移动文件
+		10) cat  查看文件内容
+			  -A  显出特殊字符
+			  -b  列出行号(不包括空白行)
+			  -n  列出行号包括空白行
+			  -T  显出 tab 键
+			  -v  列出一些不可见的字符
+			  -E  显示出行位的 $
+		11) tac  cat命令的倒写,从最后一行开始显示文件内容
+		12) more  查看文件内容
+			  空格键(space)或z  向下翻一页
+			  Enter键  向下一行
+			  q  退出
+			  d  向下翻 K 行，默认k=11
+			  =  显示行号
+			  b,ctrl+b  向上翻页
+			  :f  输出文件名和当前行的行号
+		13) less  查看文件内容
+			  空格键(space)  向下翻一页
+			  pagedown  向下翻一页
+			  pageup  向上翻一页
+			  /字串  向下查找字符串,n:向下查找;N:向上查找
+			  ?字串  向上查找字符串,n:向上查找;N:向下查找
+			  u  向上翻
+			  f  向下翻
+			  q  退出
+		14) head  查看文件前几行
+			  head -n 10 filename  查看文件前10行
+		15) tail  查看文件尾
+			  tail -n 10 filename  查看文件后10行
+			  -f 实时追踪该文件的更新
+		16) 重定向命令
+			  cat a.txt> newFile  前面命令执行的结果覆盖写到后面文件内
+			  >>  同上,但是不会覆盖,而是追加
+		17) echo  打印显示
+			  echo 字符串  打印显示字符串
+			  echo 内容>>文件  内容写入文件
+			  echo $变量  显示变量的值
+		18) ln 创建链接
+			  -s 原文件 目标文件  给原文件创建一个软链接存放在目标文件
+		19) history  查看命令历史
+	2、文件权限
+		1) chmod  更改文件权限,rwx对应二进制111,所以rwx值为十进制7
+			  chmod 777 [-R] 文件名  更改文件权限为所有用户可读可写可执行,-R表示递归修改
+			  chmod u-r 文件名  取消用户可读权限
+			  chmod g+w 文件名  添加组可写权限
+			  chmod o+x 文件名  添加拥有者可执行权限
+		2) chown  更改文件所属用户
+			  chown user file  更改文件所属用户
+			  chown -R 用户名:组名 文件名  递归更改文件所属用户
+		3) chgrp  更改文件所属用户组
+			  chown group file  更改文件所属用户组
+	3、时间日期类
+		1) date  显示当前时间
+			  date "+%Y-%m-%d %H:%M:%S"  按指定双引号内格式输出当前时间
+			  date -d "n days ago"  显示n天前时间
+			  date -s "时间字符串"  设置时间字符串内容为系统当前时间
+		2) cal  显示当前日历
+			  cal -3  显示前一月,当前月和下个月的日历
+			  cal 年份  显示指定年份的日历
+	4、用户管理
+		1) useradd 用户名  添加新用户
+		2) passwd 用户名  设置用户密码
+		3) id 用户名  判断用户是否存在
+		4) su 用户名  切换用户,无用户名时切换root
+		5) userdel 用户名  删除用户
+		6) who  查看登录用户信息
+			  whoami  显示自身用户名称
+			  who am i 显示登陆用户的用户名
+			  who  查看有哪些用户登录到本机
+		7) usermod -g 用户组 用户名  修改用户
+	5、用户组管理
+		1) groupadd 组名  新增组
+		2) groupdel 组名  删除组
+		3) groupmod -n 新组名 老组名  修改组
+	6、磁盘分区类
+		1) fdisk -l  查看磁盘分区详情(仅root可用)
+		2) df  查看硬盘
+			  -a  列出所有的文件系统，包括系统特有的 /proc 等文件系统
+			  -k  以 KBytes 的容量显示各文件系统
+			  -m  以 MBytes 的容量显示各文件系统
+			  -h  以人们较易阅读的 GBytes, MBytes, KBytes 等格式自行显示
+			  -H  以 M=1000K 取代 M=1024K 的进位方式
+			  -T  显示文件系统类型，连同该 partition 的 filesystem 名称 (例如 ext3) 也列出
+			  -i  不用硬盘容量，而以 inode 的数量来显示
+		3) mount  挂载设备
+			  mount -t iso9660 /dev/cdrom /mnt/cdrom/  挂载光盘
+			  umount 设备文件名或挂载点  解除挂载
+		4) du  检查硬盘使用情况，统计文件或目录及子目录使用硬盘的空间大小
+			  -a  显示所有目录或文件的大小
+			  -b  以byte为单位，显示目录或文件的大小
+			  -c  显示目录或文件的总和
+			  -k  以KB为单位输出
+			  -m  以MB为单位输出
+			  -s  仅显示目录或文件的总计数值
+			  -h  以K,M,G为单位，提高信息可读性
+			  -x  跳过不同的文件系统目录
+			  -S  显示目录的大小，但不含子目录大小
+			  -D  显示指定符号链接的源文件大小
+		5) free 查看内存
+			  -b  以Byte为单位显示内存使用情况
+			  -k  以KB为单位显示内存使用情况
+			  -m  以MB为单位显示内存使用情况
+			  -h  以合适的单位显示内存使用情况，最大为三位数，自动计算对应的单位值
+			  -o  不显示缓冲区调节列
+			  -s<间隔秒数>  持续观察内存使用状况
+			  -t  显示内存总和列
+			  -V  显示版本信息
+	7、搜索查找类
+		1) find  查找文件或目录
+			  find [搜索范围] [匹配条件]
+		2) grep 在文件内搜索字符串的行并输出
+			-e:  使用PATTERN作为模式。这可以用于指定多个搜索模式，或保护以连字符（ - ）开头的图案。指定字符串做为查找文件内容的样式。   
+			-f:  指定规则文件，其内容含有一个或多个规则样式，让grep查找符合规则条件的文件内容，格式为每行一个规则样式。
+			-i:  搜索时候忽略大小写
+		 ***-v:  反转匹配，选择没有被匹配到的内容。
+			-w：匹配整词，精确地单词,单词的两边必须是非字符符号(即不能是字母数字或下划线)
+			-x：仅选择与整行完全匹配的匹配项。精确匹配整行内容(包括行首行尾那些看不到的空格内容都要完全匹配)
+			-y：此参数的效果和指定“-i”参数相同。
+		3) which  搜索命令所在目录
+	8、进程线程类
+		1) ps -aux  查看系统中所有进程
+		2) top -d 秒数  指定top隔几秒刷新,默认3秒
+			  -i  使top不显示任何闲置或者僵死进程
+			  -p  通过指定监控进程ID来仅仅监控某个进程的状态
+			  -s  使top命令在安全模式中运行。这将去除交互命令所带来的潜在危险
+			  M  按内存使用率排序
+			  P  按CPU使用率排序
+			  N  按PID排序
+			  q  退出
+		3) pstree  查看进程树
+			  -p  显示进程PID
+			  -u  显示进程的所属用户
+		4) kill  终止进程
+			  kill -9 PID进程号  杀死进程号对应进程
+			  kill -9 `jps | grep XXX |awk '{print $1}'`
+		5) netstat  显示网络统计信息
+			  netstat -anp [|grep 8088] 显示整个系统目前的网络情况(查看8088端口的网络使用情况)
+	9、压缩和解压缩
+		1) gzip/ungzip 文件名  只能压缩文件不能压缩目录且不保留原文件
+		2) zip/unzip  
+			  zip [-r] xxx.zip 要压缩的文件  压缩文件和目录为xxx.zip文件(-r压缩目录)
+			  unzip xxx.zip  解压文件
+		3) tar  打包文件
+			  -c  产生.tar打包文件
+			  -v  显示详细信息
+			  -f  指定压缩后的文件名
+			  -z  打包同时压缩
+			  -x  解包.tar文件
+			  tar -zcvf xxx.tar.gz file1 file2  压缩
+			  tar -zxvf xxx.tar.gz -C targetFolder  解压到指定位置
+	10、后台服务管理类
+		****& 最经常被用到
+			这个用在一个命令的最后，可以把这个命令放到后台执行
+			
+		****nohup 不挂断的运行.就是指，用nohup运行命令可以使命
+				  令永久的执行下去，和用户终端没有关系，例如我们
+				  断开SSH连接都不会影响他的运行.
+				  注意了nohup没有后台运行的意思；&才是后台运行
+				例：nohup java -jar xx.jar 将java -jar xx.jar任务放到后台，
+						关闭标准输入，终端不再能够接收任何输入（标准输入），
+						重定向标准输出和标准错误到当前目录下的nohup.out文件，
+						即使关闭xshell退出当前session依然继续运行。
+					nohup java -jar xx.jar & 将java -jar xx.jar任务放到后台，
+					    但是依然可以使用标准输入，终端能够接收任何输入，
+						重定向标准输出和标准错误到当前目录下的nohup.out文件，
+						即使关闭xshell退出当前session依然继续运行。
+
+		****ctrl + z
+			可以将一个正在前台执行的命令放到后台，并且暂停
+
+		****jobs
+			查看当前有多少在后台运行的命令
+
+		****fg
+			将后台中的命令调至前台继续运行
+			如果后台中有多个命令，可以用 fg %jobnumber将选中的命令调出，%jobnumber是通过jobs命令查到的
+			后台正在执行的命令的序号(不是pid)
+
+		****bg
+			将一个在后台暂停的命令，变成继续执行
+			如果后台中有多个命令，可以用bg %jobnumber将选中的命令调出，%jobnumber是通过jobs命令查到的
+			后台正在执行的命令的序号(不是pid)
+	  CentOS6：
+		1) service --status-all  查看系统中所有的后台服务
+		2) service name status  查看指定服务的状态
+		3) service name start  启动指定服务
+		4) service name stop  停止指定服务
+		5) service name restart  重启指定服务
+		6) chkconfig  查看所有服务器自启配置
+		7) chkconfig name off  关闭指定服务的自动启动
+		8) chkconfig name on  开启指定服务的自动启动
+	  CentOS7：
+		服务类命令写法：
+			systemctl stop firewalld.service
+			systemctl disable firewalld.service
+			systemctl status firewalld.service
+		关闭图形界面启动：
+			cat /etc/inittab  有说明
+			systemctl set-default multi-user.target  关闭图形界面
+			systemctl set-default graphical.target  开启图形界面
+	11、crond定时任务
+		1) crontab 
+			  -e  编辑定时任务
+			  -l  查询crontab任务
+			  -r  删除当前用户的所有crontab任务
+		2) crontab -e  进入编辑界面
+		
+			  * * * * * 执行的任务
+			  
+			  第一个 *	一小时当中的第几分钟	0-59
+			  第二个 *	一天当中的第几小时	0-23
+			  第三个 *	一个月当中的第几天	1-31
+			  第四个 *	一年当中的第几月	1-12
+			  第五个 *	一周当中的星期几	0-7（0和7都代表星期日）
+			  
+			  *	代表任何时间。	第一个 * 就代表一小时中每分钟都执行一次的意思。
+			  
+			  ，代表不连续的时间。	 0 8,12,16 * * * 命令 ，就代表在每天的8点0分，12点0分，16点0分都执行一次命令
+			  
+			  -	代表连续的时间范围。 0 5  *  *  1-6命令 ，代表在周一到周六的凌晨5点0分执行命令
+			  
+			  */n	代表每隔多久执行一次。 */10  *  *  *  *  命令 ，代表每隔10分钟就执行一遍命令
+		3) 特定时间执行命令
+		
+		  45 22 * * * 命令	在22点45分执行命令
+
+	12、rpm
+		1) rpm -qa [|grep vim]  查询所有已安装rpm包(查询vim的rpm包)
+		2) rpm -e 包名  卸载指定包
+		3) rpm -ivh rpm包名  安装指定包
+			  -i  安装
+			  -v  显示详细信息
+			  -h  进度条
+二、VI/VIM编辑器
+	1、一般模式：
+		1) yy 复制光标当前一行
+		2) y数字y 复制一段(从第几行到第几行)
+		3) p 粘贴复制内容到光标位置
+		4) u 撤销上一步,相当于Windows下的Ctrl+Z
+		5) x 删除一个字符
+		   X 删除一个单词
+		6) yw 复制一个词
+		7) dw 删除一个词
+		8) shift+^ 光标跳到行头
+		9) shift+$ 跳到行尾
+		10) shift+g 跳到文件尾
+		11) 数字N+shift+g 移动到目标行
+	2、编辑模式
+	    1) i 当前光标前插入
+		2) a 当前光标后插入
+		3) o 当前光标行的下一行
+	3、指令模式
+	    1) :w 写入
+		   :q 退出
+		   :wq 写入退出
+		   加!强制执行
+		2) / 查找,语法:  /被查找词, n下一个,shift+n上一个
+		3) ?被查找词,用法:n上一个,shift+n下一个
+三、系统管理操作
+	1、配置主机名
+	  CentOS6：
+		vi /etc/sysconfig/network
+	  CentOS7：
+	    vi /etc/hostname
+		修改 HOSTNAME的值
+	2、配置ip地址 
+		vi /etc/sysconfig/network-scripts/ifcfg-eth0
+		网卡配置文件ifcfg-eth0内容如下：
+			DEVICE=eth0				  # 设备名
+			HWADDR=00:0C:29:DB:B8:AC  # MAC地址
+			TYPE=Ethernet			  # 网络类型
+			ONBOOT=yes				  # 开机启动
+			NM_CONTROLLED=no		  # network manger的参数，实时生效，修改后无需要重启网卡立即生效。
+			BOOTPROTO=static		  # 使用静态地址协议
+			IPADDR=192.168.119.101	  # 设置本机IP地址
+			GATEWAY=192.168.119.2	  # 设置本机网关
+			NETMASK=255.255.255.0	  # 设置本机子网掩码
+	3、关于mac地址及网卡
+		vi /etc/udev/rules.d/70-persistent-net.rules
+		ATTR{address}=="00:0c:29:db:b8:ac", ATTR{type}=="1", KERNEL=="eth*", NAME="eth0"
+		设备名 eth0
+		物理地址需和网卡ifcfg-eth0中保持一致
+	4、 防火墙
+		1) 查看防火墙状态
+			service iptables status
+		2) 临时关闭防火墙
+			service iptables stop
+		3) 查看防火墙开机启动状态
+			chkconfig iptables --list
+		4) 关闭防火墙开机启动
+			chkconfig iptables off
+		5) 开启防火墙开机启动
+			chkconfig iptables on
+	5、 关机重启
+			首先使用 sync 命令将内存中的数据写入磁盘
+		1) halt 关机
+		2) reboot 重启
+四、shell编程
+	1、shell脚本的执行方式
+		1) echo输出内容到控制台
+			  -e  支持 / 转义字符
+		2) 脚本编程  第一行 #!/bin/bash
+		3) 脚本的常用执行方式
+			  直接输入脚本绝对路径或相对路径(需可执行权限)
+			  sh或bash+脚本名(无需可执行权限)
+	2、shell中的变量
+		1) 变量分为
+			  系统变量  $HOME $PWD $SHELL $USER等
+			  用户自定义变量
+			  set  显示当前shell中所有变量
+		2) 变量基本操作
+			  变量=值  定义变量(等号两边不能有空格)
+			  unset 变量  撤销变量
+			  readonly 变量  声明静态变量(静态变量不能被unset撤销)
+			  export 变量  把变量提升为全局环境变量
+			  A=`ls -al`  反引号内的命令的运行结果赋值给变量A
+			  A=$(ls -al)  等价于反引号
+		3) 设置环境变量
+			  vi /etc/profile
+			  export 变量名=变量值  设置环境变量的值
+			  source /etc/profile  使修改后的配置信息立即生效
+		4) $变量
+			  $n  n为0代表命令本身,$1-$9表示第一到第九个参数,十以上的参数需用大括号${10}
+			  $*  代表命令行中所有参数,把所有参数看为一个整体
+			  $@  代表命令行中所有参数,每个参数区分对待
+			  $#  代表命令行中所有参数的个数
+			  $$  当前进程的进程号(PID)
+			  $!  后台运行的最后一个进程的进程号(PID)
+			  $?  上一条命令的返回状态.如果这个变量值为0说明上一条命令正确执行,否则证明上一条命令执行有问题
+		5) 运算符
+			  $((运算式))或$[运算式]
+			  expr m + n  运算符和m、n之间要有空格
+			  /* / %  expr的乘、除、取余
+	3、条件判断
+		1) 判断语句
+			  [ condition ]  condition前后有空格
+			  []  返回false
+		2) 常用判断条件
+		
+			  两个整数比较
+			  =  字符串比较
+			  -lt  小于
+			  -le  小于等于
+			  -eq  等于
+			  -gt  大于
+			  -ge  大于等于
+			  -ne  不等于
+				[ 5 -ge 3 ]  判断5是否大于等于3
+			
+			-e	文件名 如果文件存在则为真
+			-r	文件名 果文件存在且可读则为真
+			-w	文件名 如果文件存在且可写则为真
+			-x	文件名 如果文件存在且可执行则为真
+			-s  文件名 如果文件存在且至少有一个字符则为真
+			-d  文件名 如果文件存在且为目录则为真
+			-f  文件名 如果文件存在且为普通文件则为真
+			-c  文件名 如果文件存在且为字符型特殊文件则为真
+			-b  文件名 如果文件存在且为块特殊文件则为真
+			  按文件权限判断
+			  -r  读
+			  -w  写
+			  -x  可执行
+			    [ -x xxx.sh ]  判断xxx.sh是否具有可执行权限
+				
+			  按文件类型判断
+			  -f  文件存在而且是一个常规文件
+			  -e  文件存在
+			  -d  文件存在是一个目录
+			    [ -e /root/install.log ]  判断root目录下install.log是否存在
+		3) if判断
+			语法
+			-------------------------------------
+			if [ condition ] 
+			  then
+			    程序
+			fi
+			-------------------------------------
+			其中,elif可选。if和中括号、中括号和condition之间都必须有空格
+		4) case语句
+			语法
+			-------------------------------------
+			case $变量名 in 	|
+			"值1"） 			|
+				程序1			|如果变量的值等于值1，则执行程序1 
+			;; 					|
+			"值2"） 			|
+				程序2			|如果变量的值等于值2，则执行程序2 
+			;; 					|
+			…省略其他分支… 		|
+			*） 				|
+				程序			|如果变量的值都不是以上的值，则执行此程序 
+			;; 					|
+			esac  				|
+			----------------------------------------	
+	4、循环结构
+		1) for循环
+			语法
+			-------------------------------------
+			for 变量 in 值1 值2 值3… 
+			  do 
+				程序 
+			  done
+			-------------------------------------  
+			for (( 初始值;循环控制条件;变量变化 )) 
+			  do 
+				程序 
+			  done  
+			--------------------------------------
+		2) while循环
+			语法
+			--------------------------------------
+			while [ 条件判断式 ] 
+			  do 
+				程序 
+			  done
+			---------------------------------------
+	5、read读取控制台输入
+		read -p "请输入:"  指定读取时的提示符为 '请输入:'
+		read -t n  指定读值时等待的时间(秒)
+			命令加参数可以指定读取的变量名
+	6、函数
+		1) 系统函数
+			basename 文件名  去掉所有的目录,仅把文件名显示出来
+			dirname 文件名  把除去文件名以外的目录显示出来
+		2) 自定义函数
+			语法
+			---------------------------------------
+			function name()
+			{
+				程序
+			}
+			---------------------------------------
+			自定义函数必须在调用函数之前声明
+			加return 返回指定
+			不加return 返回最后一条命令运行结果
+	7、yum
+		1) 常用命令
+			yum install -y tree  安装tree命令(-y 指所以询问y、n选项均选yes)
+			yum install -y net-tools (安装netstat)
+			yum list  列出所有可用的package和package组
+			yum clean all  清除所有缓存数据
+			yum repolist  列出可用的YUM源
+			yum deplist mysql  列出mysql所有依赖的包
+			yum remove tree  删除tree
+		2) 配置网络yum源
+			http://mirrors.163.com/.help/centos.html下载CentOS6-Base-163.repo
+			重命名CentOS-Base.repo为CentOS-Base.repo.bak做备份
+			修改CentOS6-Base-163.repo为CentOS-Base.repo
+			yum clean all  清理缓存
+			yum makecache  重新生成缓存	
+
+	8、有用的脚本：
+		杀死XXX进程脚本(jps命令)：
+			kill -9 `jps | grep XXX |awk '{print $1}'`
+		
+		集群间同步文件脚本(需安装rsync命令)：
+			#!/bin/bash
+			#1 获取输入参数个数,如果没有参数,直接退出
+			pcount=$#
+			if((pcount==0)); then
+			echo no args;
+			exit;
+			fi
+
+			#2 获取文件名称
+			p1=$1
+			fname=`basename $p1`
+			echo fname=$fname
+
+			#3 获取上级目录到绝对路径
+			pdir=`cd -P $(dirname $p1);pwd`
+			echo pdir=$pdir
+
+			#4 获取当前用户名称
+			user=`whoami`
+
+			#5 循环
+			for((host=1; host<4; host++ ));
+			  do
+				#echo $pdir/$fname $user@hadoop$host:$pdir
+				echo ------------hadoop0$host------------
+				rsync -rvl $pdir/$fname $user@hadoop0$host:$pdir
+			  done
