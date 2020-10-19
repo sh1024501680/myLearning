@@ -1,0 +1,26 @@
+mysql创建用户：CREATE USER 'azkaban'@'%' IDENTIFIED BY '123456';
+
+提示密码不合要求时：
+SHOW VARIABLES LIKE 'validate_password%';   --查看 mysql 初始的密码策略
++--------------------------------------+--------+
+| Variable_name                        | Value  |
++--------------------------------------+--------+
+| validate_password_check_user_name    | OFF    |
+| validate_password_dictionary_file    |        |
+| validate_password_length             | 8      |
+| validate_password_mixed_case_count   | 1      |
+| validate_password_number_count       | 1      |
+| validate_password_policy             | MEDIUM |
+| validate_password_special_char_count | 1      |
++--------------------------------------+--------+
+
+set global validate_password_policy=LOW;
+set global validate_password_length=6;  --设置密码位数为6
+
+mysql修改用户密码：
+	mysqladmin -u root password "123456"
+	SET PASSWORD FOR 'azkaban'@'%' = PASSWORD("123456");
+	UPDATE mysql.user SET Password = PASSWORD('123456') WHERE user = 'root';
+	
+
+	
