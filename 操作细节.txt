@@ -21,7 +21,14 @@ mysql修改用户密码：
 	mysqladmin -u root password "123456"
 	SET PASSWORD FOR 'azkaban'@'%' = PASSWORD("123456");
 	UPDATE mysql.user SET Password = PASSWORD('123456') WHERE user = 'root';
-	
+
+mysql关闭ssl：
+	SHOW VARIABLES LIKE '%ssl%';  --have_ssl的值为YES，表示已开启SSL。（have_openssl表示是否支持SSL）
+	修改配置文件my.cnf，加入以下内容：
+		# disable_ssl
+		skip_ssl
+	重启MySQL服务
+
 hive导入未分区数据到分区表
 	#开启动态分区设置
 	set hive.exec.dynamic.partition =true
