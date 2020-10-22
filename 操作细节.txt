@@ -72,4 +72,8 @@ hive导入未分区数据到分区表
 				make install
 	3.解压缩Hadoop源码并进入Hadoop源码文件夹
 		mvn package -Pdist,native -DskipTests -Dtar
-	
+
+maven上传本地jar到私服命令：	
+mvn deploy:deploy-file -DgroupId=walkersoft-tcp-common -DartifactId=walkersoft-tcp-common -Dversion=0.1.1 -Dpackaging=jar -DrepositoryId=newcapec-bigdata -Dfile=walkersoft-tcp-common-0.1.1.jar -Durl=http://192.168.112.61:8081/repository/newcapec-bigdata/
+坑：在maven的conf下settings.xml里面去掉阿里云的镜像，推荐在pom文件中使用<repositories/>标签
+	配置仓库地址
