@@ -77,3 +77,43 @@ maven上传本地jar到私服命令：
 mvn deploy:deploy-file -DgroupId=walkersoft-tcp-common -DartifactId=walkersoft-tcp-common -Dversion=0.1.1 -Dpackaging=jar -DrepositoryId=newcapec-bigdata -Dfile=walkersoft-tcp-common-0.1.1.jar -Durl=http://192.168.112.61:8081/repository/newcapec-bigdata/
 坑：在maven的conf下settings.xml里面去掉阿里云的镜像，推荐在pom文件中使用<repositories/>标签
 	配置仓库地址
+	
+前端复选框全选js
+  function chk(obj) {
+    var id = $(obj).val()
+    var chkNum = $(".checkOne").size();//选项总个数
+    var chk = 0;
+    $(".checkOne").each(function () {
+      if ($(this).prop("checked") == true) {
+        chk++;
+      }
+    });
+    if(chkNum==chk){//全选
+      $("#checkAll").prop("checked",true);
+    }else{//不全选
+      $("#checkAll").prop("checked",false);
+    }
+
+  }
+
+  function checkAll() {
+    $("#checkAll").click(function(){
+      if(this.checked){
+        $(".checkOne").prop("checked", true);
+      }else{
+        $(".checkOne").prop("checked", false);
+      }
+    });
+  }
+
+  $(function(){
+    checkAll()
+  })
+  获取所有选中的值：
+    function f() {
+	  var ids = new Array();
+	  $(".checkOne").each(function(){
+		if (this.checked)
+		  ids.push($(this).val());
+	  });
+	}
