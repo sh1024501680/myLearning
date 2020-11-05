@@ -117,3 +117,32 @@ mvn deploy:deploy-file -DgroupId=walkersoft-tcp-common -DartifactId=walkersoft-t
 		  ids.push($(this).val());
 	  });
 	}
+
+$("#sel").val('xx');//设置value为xx的option选项为默认选中
+$("#sel option[value='xx']").prop("selected",selected); 
+避免踩坑：
+$("#sel").find("option:contains('xx')").attr("selected",true);
+$("#sel").find("option:contains('xx')").prop("selected",true);
+
+mysql使用正则批量删除表：
+	拿到 删除的sql：
+		select
+			concat('DROP TABLE ',GROUP_CONCAT(TABLE_NAME),';')
+		from 
+			information_schema.tables
+		where 
+			TABLE_SCHEMA='ecard'
+			and TABLE_NAME regexp '^as_record_11(_history){0,1}$'
+	执行sql的结果：DROP TABLE as_record_11,as_record_11_history;
+
+mysql修改自增id起始值(单机mysql)：
+	alter table dc_meta_table AUTO_INCREMENT=3362
+	
+Windows 下查看端口被占用：netstat -ano | findstr ":8089 "
+																	   PID
+  TCP    0.0.0.0:8089           0.0.0.0:0              LISTENING       7080
+  TCP    [::]:8089              [::]:0                 LISTENING       7080
+  TCP    [::1]:57840            [::1]:8089             TIME_WAIT       0
+使用：tasklist | findstr "7080" 查到：
+		java.exe         7080 Console          1    807,712 K
+
