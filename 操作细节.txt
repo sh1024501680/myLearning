@@ -146,3 +146,7 @@ Windows 下查看端口被占用：netstat -ano | findstr ":8089 "
 使用：tasklist | findstr "7080" 查到：
 		java.exe         7080 Console          1    807,712 K
 
+Hibernate中的HQL模糊查询语句：
+	"select entity from EcardTableSql entity where entity.tableName like ? "
+	注意：%放在传入的字符串参数中
+		  占位符不能带数字
