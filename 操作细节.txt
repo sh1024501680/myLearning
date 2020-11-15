@@ -164,3 +164,7 @@ maven<!-- 根据不同的环境使用不同的配置文件,使用方法： 'mvn 
             </properties>
         </profile>
     </profiles>
+
+kafka创建topic：
+	kafka-topics.sh --create --zookeeper hadoop01:2181,hadoop02:2181,hadoop03:2181 --replication-factor 2 --partitions 2 --topic source
+	创建使用的脚本	  参数		ZooKeeper地址										 主题副本数				主题分区数			 主题名
