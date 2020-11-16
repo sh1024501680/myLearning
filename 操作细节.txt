@@ -111,12 +111,18 @@ mvn deploy:deploy-file -DgroupId=walkersoft-tcp-common -DartifactId=walkersoft-t
 		  ids.push($(this).val());
 	  });
 	}
+前端根据传入的值设置select标签默认值
+	$("#sel").val('xx');//设置value为xx的option选项为默认选中
+	$("#sel option[value='xx']").prop("selected",selected); 
+	避免踩坑：
+	$("#sel").find("option:contains('xx')").attr("selected",true);
+	$("#sel").find("option:contains('xx')").prop("selected",true);
+前端通过jQuery插入元素
+	append() - 在被选元素的结尾插入内容
+	prepend() - 在被选元素的开头插入内容
+	after() - 在被选元素之后插入内容
+	before() - 在被选元素之前插入内容
 
-$("#sel").val('xx');//设置value为xx的option选项为默认选中
-$("#sel option[value='xx']").prop("selected",selected); 
-避免踩坑：
-$("#sel").find("option:contains('xx')").attr("selected",true);
-$("#sel").find("option:contains('xx')").prop("selected",true);
 
 mysql使用正则批量删除表：
 	拿到 删除的sql：
