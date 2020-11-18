@@ -29,6 +29,20 @@ mysql关闭ssl：
 		skip_ssl
 	重启MySQL服务
 
+mysql使用正则批量删除表：
+	拿到 删除的sql：
+		select
+			concat('DROP TABLE ',GROUP_CONCAT(TABLE_NAME),';')
+		from 
+			information_schema.tables
+		where 
+			TABLE_SCHEMA='ecard'
+			and TABLE_NAME regexp '^as_record_11(_history){0,1}$'
+	执行sql的结果：DROP TABLE as_record_11,as_record_11_history;
+
+mysql修改自增id起始值(单机mysql)：
+	alter table dc_meta_table AUTO_INCREMENT=3362
+
 hive导入未分区数据到分区表
 	#开启动态分区设置
 	set hive.exec.dynamic.partition =true
@@ -73,10 +87,7 @@ hive导入未分区数据到分区表
 	3.解压缩Hadoop源码并进入Hadoop源码文件夹
 		mvn package -Pdist,native -DskipTests -Dtar
 
-maven上传本地jar到私服命令：	
-mvn deploy:deploy-file -DgroupId=walkersoft-tcp-common -DartifactId=walkersoft-tcp-common -Dversion=0.1.1 -Dpackaging=jar -DrepositoryId=newcapec-bigdata -Dfile=walkersoft-tcp-common-0.1.1.jar -Durl=http://192.168.112.61:8081/repository/newcapec-bigdata/
-坑：在maven的conf下settings.xml里面去掉阿里云的镜像，推荐在pom文件中使用<repositories/>标签
-	配置仓库地址
+
 	
 前端复选框全选js
   function chk(obj) {
@@ -122,21 +133,11 @@ mvn deploy:deploy-file -DgroupId=walkersoft-tcp-common -DartifactId=walkersoft-t
 	prepend() - 在被选元素的开头插入内容
 	after() - 在被选元素之后插入内容
 	before() - 在被选元素之前插入内容
+	
+类型转换、参数判断一般写view层
+action/controller一般要将所有的异常捕获返回错误信息
 
 
-mysql使用正则批量删除表：
-	拿到 删除的sql：
-		select
-			concat('DROP TABLE ',GROUP_CONCAT(TABLE_NAME),';')
-		from 
-			information_schema.tables
-		where 
-			TABLE_SCHEMA='ecard'
-			and TABLE_NAME regexp '^as_record_11(_history){0,1}$'
-	执行sql的结果：DROP TABLE as_record_11,as_record_11_history;
-
-mysql修改自增id起始值(单机mysql)：
-	alter table dc_meta_table AUTO_INCREMENT=3362
 	
 Windows 下查看端口被占用：netstat -ano | findstr ":8089 "
 																	   PID
@@ -151,7 +152,8 @@ Hibernate中的HQL模糊查询语句：
 	注意：%放在传入的字符串参数中
 		  占位符不能带数字
 		  
-maven<!-- 根据不同的环境使用不同的配置文件,使用方法： 'mvn clean package -P test' 不添加参数-P默认为dev -->
+maven：
+	<!-- 根据不同的环境使用不同的配置文件,使用方法： 'mvn clean package -P test' 不添加参数-P默认为dev -->
     <profiles>
         <profile>
             <id>dev</id>
@@ -171,3 +173,11 @@ maven<!-- 根据不同的环境使用不同的配置文件,使用方法： 'mvn 
         </profile>
     </profiles>
 	
+maven上传本地jar到私服命令：	
+mvn deploy:deploy-file -DgroupId=walkersoft-tcp-common -DartifactId=walkersoft-tcp-common -Dversion=0.1.1 -Dpackaging=jar -DrepositoryId=newcapec-bigdata -Dfile=walkersoft-tcp-common-0.1.1.jar -Durl=http://192.168.112.61:8081/repository/newcapec-bigdata/
+坑：在maven的conf下settings.xml里面去掉阿里云的镜像，推荐在pom文件中使用<repositories/>标签
+	配置仓库地址
+	
+Java：Integer包装类可为空，int基础类型不能为空
+	  Integer做条件判断会自动拆箱(转int)，如果Integer为null报NullPointerException
+
