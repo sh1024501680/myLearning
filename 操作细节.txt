@@ -153,7 +153,7 @@ Hibernate中的HQL模糊查询语句：
 		  占位符不能带数字
 		  
 maven：
-	<!-- 根据不同的环境使用不同的配置文件,使用方法： 'mvn clean package -P test' 不添加参数-P默认为dev -->
+    <!-- 根据不同的环境使用不同的配置文件,使用方法： 'mvn clean package -P test' 不添加参数-P默认为dev -->
     <profiles>
         <profile>
             <id>dev</id>
@@ -179,5 +179,5 @@ mvn deploy:deploy-file -DgroupId=walkersoft-tcp-common -DartifactId=walkersoft-t
 	配置仓库地址
 	
 Java：Integer包装类可为空，int基础类型不能为空
-	  Integer做条件判断会自动拆箱(转int)，如果Integer为null报NullPointerException
+      Integer做条件判断会自动拆箱(转int)，如果Integer为null报NullPointerException
 
