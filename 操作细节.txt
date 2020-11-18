@@ -18,77 +18,77 @@ set global validate_password_policy=LOW;
 set global validate_password_length=6;  --设置密码位数为6
 
 mysql修改用户密码：
-	mysqladmin -u root password "123456"
-	SET PASSWORD FOR 'azkaban'@'%' = PASSWORD("123456");
-	UPDATE mysql.user SET Password = PASSWORD('123456') WHERE user = 'root';
+    mysqladmin -u root password "123456"
+    SET PASSWORD FOR 'azkaban'@'%' = PASSWORD("123456");
+    UPDATE mysql.user SET Password = PASSWORD('123456') WHERE user = 'root';
 
 mysql关闭ssl：
-	SHOW VARIABLES LIKE '%ssl%';  --have_ssl的值为YES，表示已开启SSL。（have_openssl表示是否支持SSL）
-	修改配置文件my.cnf，加入以下内容：
-		# disable_ssl
-		skip_ssl
-	重启MySQL服务
+    SHOW VARIABLES LIKE '%ssl%';  --have_ssl的值为YES，表示已开启SSL。（have_openssl表示是否支持SSL）
+    修改配置文件my.cnf，加入以下内容：
+        # disable_ssl
+        skip_ssl
+    重启MySQL服务
 
 mysql使用正则批量删除表：
-	拿到 删除的sql：
-		select
-			concat('DROP TABLE ',GROUP_CONCAT(TABLE_NAME),';')
-		from 
-			information_schema.tables
-		where 
-			TABLE_SCHEMA='ecard'
-			and TABLE_NAME regexp '^as_record_11(_history){0,1}$'
-	执行sql的结果：DROP TABLE as_record_11,as_record_11_history;
+    拿到 删除的sql：
+        select
+            concat('DROP TABLE ',GROUP_CONCAT(TABLE_NAME),';')
+        from 
+            information_schema.tables
+        where 
+            TABLE_SCHEMA='ecard'
+            and TABLE_NAME regexp '^as_record_11(_history){0,1}$'
+    执行sql的结果：DROP TABLE as_record_11,as_record_11_history;
 
 mysql修改自增id起始值(单机mysql)：
-	alter table dc_meta_table AUTO_INCREMENT=3362
+    alter table dc_meta_table AUTO_INCREMENT=3362
 
 hive导入未分区数据到分区表
-	#开启动态分区设置
-	set hive.exec.dynamic.partition =true
-	set hive.exec.dynamic.partition.mode = nonstrict
-	# 导入未分区数据到分区表
-	insert overwrite table t1 partition(dt) select c1,c2 dt from t2;
+    #开启动态分区设置
+    set hive.exec.dynamic.partition =true
+    set hive.exec.dynamic.partition.mode = nonstrict
+    # 导入未分区数据到分区表
+    insert overwrite table t1 partition(dt) select c1,c2 dt from t2;
 
 编译Hadoop2.8.5源码
-	1.安装maven
-	2.安装protobuf
-		1)下载源码 https://github.com/protocolbuffers/protobuf/tree/v2.5.0
-		2)上传至linux并解压缩
-		3)执行yum install -y glibc-headers
-			  yum install -y gcc-c++
-			  yum install -y make
-			  yum install -y cmake
-			  yum install -y openssl-devel
-			  yum install -y ncurses-devel
-		4)cd protobuf-2.5.0
-			a.执行 ./autogen.sh
-				报错：tar (grandchild): bzip2:无法 exec: 没有那个文件或目录
-					安装bzip2：yum install -y bzip2
-				报错：Failed to connect to googlemock.googlecode.com
-					修改一下autogen.sh中
-						echo "Google Test not present.  Fetching gtest-1.5.0 from the web..."
-						 curl http://googletest.googlecode.com/files/gtest-1.5.0.tar.bz2 | tar jx
-						 mv gtest-1.5.0 gtest
-						为
-						wget https://github.com/google/googletest/archive/release-1.5.0.tar.gz
-						tar xzvf release-1.5.0.tar.gz
-						mv googletest-release-1.5.0 gtest
-						再次执行
-				报错：autoreconf: command not found
-					安装autoreconf
-				报错Can't exec "aclocal": 没有那个文件或目录 at /usr/share/autoconf/Autom4te/Fil
-					安装automake
-			b.按顺序执行
-				./configure --prefix=/usr/local/protobuf
-				make
-				make check
-				make install
-	3.解压缩Hadoop源码并进入Hadoop源码文件夹
-		mvn package -Pdist,native -DskipTests -Dtar
+    1.安装maven
+    2.安装protobuf
+        1)下载源码 https://github.com/protocolbuffers/protobuf/tree/v2.5.0
+        2)上传至linux并解压缩
+        3)执行yum install -y glibc-headers
+              yum install -y gcc-c++
+              yum install -y make
+              yum install -y cmake
+              yum install -y openssl-devel
+              yum install -y ncurses-devel
+        4)cd protobuf-2.5.0
+            a.执行 ./autogen.sh
+                报错：tar (grandchild): bzip2:无法 exec: 没有那个文件或目录
+                    安装bzip2：yum install -y bzip2
+                报错：Failed to connect to googlemock.googlecode.com
+                    修改一下autogen.sh中
+                        echo "Google Test not present.  Fetching gtest-1.5.0 from the web..."
+                         curl http://googletest.googlecode.com/files/gtest-1.5.0.tar.bz2 | tar jx
+                         mv gtest-1.5.0 gtest
+                        为
+                        wget https://github.com/google/googletest/archive/release-1.5.0.tar.gz
+                        tar xzvf release-1.5.0.tar.gz
+                        mv googletest-release-1.5.0 gtest
+                        再次执行
+                报错：autoreconf: command not found
+                    安装autoreconf
+                报错Can't exec "aclocal": 没有那个文件或目录 at /usr/share/autoconf/Autom4te/Fil
+                    安装automake
+            b.按顺序执行
+                ./configure --prefix=/usr/local/protobuf
+                make
+                make check
+                make install
+    3.解压缩Hadoop源码并进入Hadoop源码文件夹
+        mvn package -Pdist,native -DskipTests -Dtar
 
 
-	
+    
 前端复选框全选js
   function chk(obj) {
     var id = $(obj).val()
@@ -116,42 +116,42 @@ hive导入未分区数据到分区表
   }
   获取所有选中的值：
     function f() {
-	  var ids = new Array();
-	  $(".checkOne").each(function(){
-		if (this.checked)
-		  ids.push($(this).val());
-	  });
-	}
+      var ids = new Array();
+      $(".checkOne").each(function(){
+        if (this.checked)
+          ids.push($(this).val());
+      });
+    }
 前端根据传入的值设置select标签默认值
-	$("#sel").val('xx');//设置value为xx的option选项为默认选中
-	$("#sel option[value='xx']").prop("selected",selected); 
-	避免踩坑：
-	$("#sel").find("option:contains('xx')").attr("selected",true);
-	$("#sel").find("option:contains('xx')").prop("selected",true);
+    $("#sel").val('xx');//设置value为xx的option选项为默认选中
+    $("#sel option[value='xx']").prop("selected",selected); 
+    避免踩坑：
+    $("#sel").find("option:contains('xx')").attr("selected",true);
+    $("#sel").find("option:contains('xx')").prop("selected",true);
 前端通过jQuery插入元素
-	append() - 在被选元素的结尾插入内容
-	prepend() - 在被选元素的开头插入内容
-	after() - 在被选元素之后插入内容
-	before() - 在被选元素之前插入内容
-	
+    append() - 在被选元素的结尾插入内容
+    prepend() - 在被选元素的开头插入内容
+    after() - 在被选元素之后插入内容
+    before() - 在被选元素之前插入内容
+    
 类型转换、参数判断一般写view层
 action/controller一般要将所有的异常捕获返回错误信息
 
 
-	
+    
 Windows 下查看端口被占用：netstat -ano | findstr ":8089 "
-																	   PID
+                                                                       PID
   TCP    0.0.0.0:8089           0.0.0.0:0              LISTENING       7080
   TCP    [::]:8089              [::]:0                 LISTENING       7080
   TCP    [::1]:57840            [::1]:8089             TIME_WAIT       0
 使用：tasklist | findstr "7080" 查到：
-		java.exe         7080 Console          1    807,712 K
+        java.exe         7080 Console          1    807,712 K
 
 Hibernate中的HQL模糊查询语句：
-	"select entity from EcardTableSql entity where entity.tableName like ? "
-	注意：%放在传入的字符串参数中
-		  占位符不能带数字
-		  
+    "select entity from EcardTableSql entity where entity.tableName like ? "
+    注意：%放在传入的字符串参数中
+          占位符不能带数字
+          
 maven：
     <!-- 根据不同的环境使用不同的配置文件,使用方法： 'mvn clean package -P test' 不添加参数-P默认为dev -->
     <profiles>
@@ -172,12 +172,12 @@ maven：
             </properties>
         </profile>
     </profiles>
-	
-maven上传本地jar到私服命令：	
+    
+maven上传本地jar到私服命令：  
 mvn deploy:deploy-file -DgroupId=walkersoft-tcp-common -DartifactId=walkersoft-tcp-common -Dversion=0.1.1 -Dpackaging=jar -DrepositoryId=newcapec-bigdata -Dfile=walkersoft-tcp-common-0.1.1.jar -Durl=http://192.168.112.61:8081/repository/newcapec-bigdata/
 坑：在maven的conf下settings.xml里面去掉阿里云的镜像，推荐在pom文件中使用<repositories/>标签
-	配置仓库地址
-	
+    配置仓库地址
+    
 Java：Integer包装类可为空，int基础类型不能为空
       Integer做条件判断会自动拆箱(转int)，如果Integer为null报NullPointerException
 
