@@ -1,21 +1,20 @@
 mysql创建用户：CREATE USER 'azkaban'@'%' IDENTIFIED BY '123456';
-
-提示密码不合要求时：
-SHOW VARIABLES LIKE 'validate_password%';   --查看 mysql 初始的密码策略
-+--------------------------------------+--------+
-| Variable_name                        | Value  |
-+--------------------------------------+--------+
-| validate_password_check_user_name    | OFF    |
-| validate_password_dictionary_file    |        |
-| validate_password_length             | 8      |
-| validate_password_mixed_case_count   | 1      |
-| validate_password_number_count       | 1      |
-| validate_password_policy             | MEDIUM |
-| validate_password_special_char_count | 1      |
-+--------------------------------------+--------+
-
-set global validate_password_policy=LOW;
-set global validate_password_length=6;  --设置密码位数为6
+  提示密码不合要求时：
+    SHOW VARIABLES LIKE 'validate_password%';   --查看 mysql 初始的密码策略
+    +--------------------------------------+--------+
+    | Variable_name                        | Value  |
+    +--------------------------------------+--------+
+    | validate_password_check_user_name    | OFF    |
+    | validate_password_dictionary_file    |        |
+    | validate_password_length             | 8      |
+    | validate_password_mixed_case_count   | 1      |
+    | validate_password_number_count       | 1      |
+    | validate_password_policy             | MEDIUM |
+    | validate_password_special_char_count | 1      |
+    +--------------------------------------+--------+
+    
+    set global validate_password_policy=LOW;
+    set global validate_password_length=6;  --设置密码位数为6
 
 mysql修改用户密码：
     mysqladmin -u root password "123456"
@@ -90,38 +89,38 @@ hive导入未分区数据到分区表
 
     
 前端复选框全选js
-  function chk(obj) {
-    var id = $(obj).val()
-    var chkNum = $(".checkOne").size();//选项总个数
-    var chk = 0;
-    $(".checkOne").each(function () {
-      if ($(this).prop("checked") == true) {
-        chk++;
-      }
-    });
-    if(chkNum==chk){//全选
-      $("#checkAll").prop("checked",true);
-    }else{//不全选
-      $("#checkAll").prop("checked",false);
-    }
-
-  }
-
-  function checkAll(obj) {
-      if(obj.checked){
-        $(".checkOne").prop("checked", true);
-      }else{
-        $(".checkOne").prop("checked", false);
-      }
-  }
-  获取所有选中的值：
-    function f() {
-      var ids = new Array();
-      $(".checkOne").each(function(){
-        if (this.checked)
-          ids.push($(this).val());
+    function chk(obj) {
+      var id = $(obj).val()
+      var chkNum = $(".checkOne").size();//选项总个数
+      var chk = 0;
+      $(".checkOne").each(function () {
+        if ($(this).prop("checked") == true) {
+          chk++;
+        }
       });
+      if(chkNum==chk){//全选
+        $("#checkAll").prop("checked",true);
+      }else{//不全选
+        $("#checkAll").prop("checked",false);
+      }
+    
     }
+    
+    function checkAll(obj) {
+        if(obj.checked){
+          $(".checkOne").prop("checked", true);
+        }else{
+          $(".checkOne").prop("checked", false);
+        }
+    }
+    获取所有选中的值：
+      function f() {
+        var ids = new Array();
+        $(".checkOne").each(function(){
+          if (this.checked)
+            ids.push($(this).val());
+        });
+      }
 前端根据传入的值设置select标签默认值
     $("#sel").val('xx');//设置value为xx的option选项为默认选中
     $("#sel option[value='xx']").prop("selected",selected); 
@@ -172,11 +171,10 @@ maven：
             </properties>
         </profile>
     </profiles>
-    
 maven上传本地jar到私服命令：  
-mvn deploy:deploy-file -DgroupId=walkersoft-tcp-common -DartifactId=walkersoft-tcp-common -Dversion=0.1.1 -Dpackaging=jar -DrepositoryId=newcapec-bigdata -Dfile=walkersoft-tcp-common-0.1.1.jar -Durl=http://192.168.112.61:8081/repository/newcapec-bigdata/
-坑：在maven的conf下settings.xml里面去掉阿里云的镜像，推荐在pom文件中使用<repositories/>标签
-    配置仓库地址
+    mvn deploy:deploy-file -DgroupId=walkersoft-tcp-common -DartifactId=walkersoft-tcp-common -Dversion=0.1.1 -Dpackaging=jar -DrepositoryId=newcapec-bigdata -Dfile=walkersoft-tcp-common-0.1.1.jar -Durl=http://192.168.112.61:8081/repository/newcapec-bigdata/
+    坑：在maven的conf下settings.xml里面去掉阿里云的镜像，推荐在pom文件中使用<repositories/>标签
+        配置仓库地址
     
 Java：Integer包装类可为空，int基础类型不能为空
       Integer做条件判断会自动拆箱(转int)，如果Integer为null报NullPointerException
