@@ -179,3 +179,15 @@ maven上传本地jar到私服命令：
 Java：Integer包装类可为空，int基础类型不能为空
       Integer做条件判断会自动拆箱(转int)，如果Integer为null报NullPointerException
 
+Tomcat:首页host-manager无法访问时，修改webapps/host-manager/META-INF/context.xml
+        allow="^.*$"
+    
+linux rz 命令安装：yum install lrzsz -y
+    
+    
+    
+    
+    
+    
+    
+    
