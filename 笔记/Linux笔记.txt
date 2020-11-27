@@ -180,7 +180,7 @@
               -f  指定压缩后的文件名
               -z  打包同时压缩
               -x  解包.tar文件
-              tar -zcvf xxx.tar.gz file1 file2  压缩
+              tar -zcvf xxx.tar.gz f.tar.gz file  将file压缩为f.tar.gz
               tar -zxvf xxx.tar.gz -C targetFolder  解压到指定位置
     10、后台服务管理类
         ****& 最经常被用到
@@ -279,6 +279,7 @@
         9) shift+$ 跳到行尾
         10) shift+g 跳到文件尾
         11) 数字N+shift+g 移动到目标行
+        12) gg 光标跳到第一行
     2、编辑模式
         1) i 当前光标前插入
         2) a 当前光标后插入
