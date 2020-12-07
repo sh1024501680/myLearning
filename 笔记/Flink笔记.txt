@@ -13,7 +13,13 @@
 			Flink应用程序可以处理记录的流或实时流。
 二、Flink的使用
 	1.安装Flink
-		(1)官网https://flink.apache.org/下载flinktar包
+		(1)官网https://flink.apache.org/下载flink的tar包
 		(2)上传至linux虚拟机
 		(3)tar -zxf flink-1.11.2-bin-scala_2.12.tgz -C /opt/install
-		(4)进入flink目录下,bin/start-cluster.sh 启动单节点(master/worker内都是当前主机名)
+		(4)进入flink目录下,bin/start-cluster.sh 启动standalone模式(master/worker内都是当前主机名)
+	2.并行度优先级：
+		(1)代码中每个算子的优先级设置
+		(2)代码中全局配置的优先级
+		(3)代码中没有定义,以提交任务时的设置为准
+		(4)提交任务未设置,以集群配置文件中设置的默认值为准
+		

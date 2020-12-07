@@ -208,9 +208,12 @@ Tomcat:首页host-manager无法访问时，修改webapps/host-manager/META-INF/c
     
 linux rz 命令安装：yum install lrzsz -y
     
+Flume启动两种写法：
+	$ bin/flume-ng agent --conf conf/ --name a1 --conf-file conf/flume-telnet.conf -Dflume.root.logger==INFO,console
+	$ bin/flume-ng agent -c conf/ -n a1 -f job/file-flume-logger.conf -Dflume.root.logger=INFO,console
     
-    
-    
+flink提交任务：
+	
     
     
     

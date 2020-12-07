@@ -55,6 +55,7 @@ Flume框架基础：
 					$ netstat -an | grep 44444
 				5.1.4、先开启flume先听端口
 					$ bin/flume-ng agent --conf conf/ --name a1 --conf-file conf/flume-telnet.conf -Dflume.root.logger==INFO,console
+					$ bin/flume-ng agent -c conf/ -n a1 -f job/file-flume-logger.conf -Dflume.root.logger=INFO,console
 				5.1.5、使用telnet工具向本机的44444端口发送内容。
 					$ telnet localhost 44444
 
