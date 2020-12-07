@@ -175,6 +175,27 @@ maven上传本地jar到私服命令：
     mvn deploy:deploy-file -DgroupId=walkersoft-tcp-common -DartifactId=walkersoft-tcp-common -Dversion=0.1.1 -Dpackaging=jar -DrepositoryId=newcapec-bigdata -Dfile=walkersoft-tcp-common-0.1.1.jar -Durl=http://192.168.112.61:8081/repository/newcapec-bigdata/
     坑：在maven的conf下settings.xml里面去掉阿里云的镜像，推荐在pom文件中使用<repositories/>标签
         配置仓库地址
+	私服地址：
+	<repositories>
+		<repository>
+            <id>nexus-aliyun</id>
+            <name>Public Repositories</name>
+            <url>http://maven.aliyun.com/nexus/content/groups/public/</url>
+        </repository>
+    </repositories>
+	<pluginRepositories>
+        <pluginRepository>
+            <id>nexus-aliyun</id>
+            <name>Public Repositories</name>
+            <url>http://maven.aliyun.com/nexus/content/groups/public/</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </pluginRepository>
+    </pluginRepositories>
     
 Java：Integer包装类可为空，int基础类型不能为空
       Integer做条件判断会自动拆箱(转int)，如果Integer为null报NullPointerException
@@ -187,9 +208,12 @@ Tomcat:首页host-manager无法访问时，修改webapps/host-manager/META-INF/c
     
 linux rz 命令安装：yum install lrzsz -y
     
+Flume启动两种写法：
+	$ bin/flume-ng agent --conf conf/ --name a1 --conf-file conf/flume-telnet.conf -Dflume.root.logger==INFO,console
+	$ bin/flume-ng agent -c conf/ -n a1 -f job/file-flume-logger.conf -Dflume.root.logger=INFO,console
     
-    
-    
+flink提交任务：
+	
     
     
     
