@@ -7,6 +7,29 @@
 	3、Zookeeper=文件系统+通知机制
 	4、应用场景：
 		提供的服务包括：分布式消息同步和协调机制、服务器节点动态上下线、统一配置管理、负载均衡、集群管理等。
+		统一命名服务：
+			在分布式环境下，经常需要对应用/服务统一命名，便于识别。
+			例如，znode: /service/baidu.com/192.168.x.x
+						 /service/baidu.com/192.168.x.xx
+						 /service/baidu.com/192.168.x.xxx
+		统一配置管理：
+			(1)在分布式环境下，配置文件同步非常常见
+			    a.一般要求集群中所有节点配置信息一致
+			    b.配置文件修改后，希望快速同步到各个节点上
+			(2)配置管理可由ZooKeeper实现
+			    a.可将配置信息写到一个znode上
+			    b.其他客户端监听这个znode
+			    c.一单znode数据修改，ZooKeeper将通知各个客户端
+		统一集群管理：
+			(1)分布式环境中，掌握每个节点状态是必要的
+				a.可根据节点实时状态调整
+			(2)ZooKeeper可以实现实时监控节点状态变化
+				a.可将节点信息写入一个znode
+				b.监听这个znode可以获取它的实时状态变化
+			(3)服务器动态上下线
+				客户端能实时洞察到服务器上下线的变化
+		软负载均衡：
+			在煮zookeeper中记录每台服务器的访问次数，让访问数最少的服务器去处理最新的客户端请求。
 	5、数据结构：
 		ZooKeeper数据模型的结构与Unix文件系统很类似，整体上可以看作是一棵树，每个节点称做一个ZNode。
 		 很显然zookeeper集群自身维护了一套数据结构。这个存储结构是一个树形结构，其上的每一个节点，
@@ -49,6 +72,13 @@
 		（4）服务器4启动，根据前面的分析，理论上服务器4应该是服务器1、2、3、4中最大的，但是由于前面已经有半数以上
 			的服务器选举了服务器3，所以它只能接受当小弟的命了。
 		（5）服务器5启动，同4一样当小弟。
+	9、监听器原理：
+		1）首先要有一个main()线程
+		2）在main线程中创建zookeeper客户端，这时就会创建两个线程，一个负责网络通信(connect)，一个负责监听(listener)。
+		3）通过connect线程将注册的监听事件发送给zookeeper
+		4）在zookeeper的注册监听器列表中将注册的监听事件添加到列表中
+		5）Zookeeper监听到有数据或路径变化，将这个消息通知给listener线程
+		6）listener线程内部调用process()方法
 二、ZooKeeper实战
 	1、分布式安装部署：在hadoop01、hadoop02和hadoop03三个节点上部署Zookeeper。
 		1）tar -zxvf zookeeper-3.4.10.tar.gz -C /opt/install/	解压zookeeper安装包到/opt/install/目录下
@@ -70,6 +100,9 @@
 				
 					集群模式下配置一个文件myid，这个文件在dataDir目录下，这个文件里面有一个数据就是A的值，Zookeeper
 				启动时读取此文件，拿到里面的数据与zoo.cfg里面的配置信息比较从而判断到底是哪个server。
+			tickTime:心跳时间,单位(ms)
+			initLimit=10    指集群启动时leader和follower最大通信时长为10个心跳时间
+			syncLimit=5    指集群启动以后leader和follower最大通信时长为5个心跳时间
 		5）在/opt/install/zookeeper-3.4.10/data/zkData目录下创建一个myid的文件
 			vi myid  添加zoo.cfg文件中对应server的编号
 			拷贝配置好的zookeeper到其他机器上
