@@ -22,4 +22,66 @@
 		(2)代码中全局配置的优先级
 		(3)代码中没有定义,以提交任务时的设置为准
 		(4)提交任务未设置,以集群配置文件中设置的默认值为准
+	3.提交job
+		(1)standalone模式:
+			bin/flink run -c wc.StreamWordCount -p 2 ~/FlinkTutorial-1.0-SNAPSHOT-jar-with-dependencies.jar --host centos7-101 --port 7777
+		(2)yarn-session:
+			启动Hadoop，
+			启动yarn-session：
+				./yarn-session.sh -n 2 -s 2 -jm 1024 -nm test -d 
+				-n(--container):TaskManager的数量(不常用)
+				-s(--slots):每个TaskManager的slot数量，默认一个slot一个core，默认
+				            每个taskmanager的slot数为1，有时可以多taskmanager做冗余
+				-jm JobManager的内存(MB)
+				-tm TaskManager的内存(MB)
+				-nm yarn的appName
+				-d 后台执行
+			提交job：bin/flink run -c wc.StreamWordCount ~/FlinkTutorial-1.0-SNAPSHOT-jar-with-dependencies.jar --host centos7-101 --port 7777
+		(3)Per Job cluster
+			启动Hadoop，
+			提交job：bin/flink run -m yarn-cluster -c wc.StreamWordCount ~/FlinkTutorial-1.0-SNAPSHOT-jar-with-dependencies.jar --host centos7-101 --port 7777
+三、深入认识Flink
+	1.组件：
+		(1) JobManager(作业管理器):控制一个应用程序执行的主进程，即每个JobManager
+							   控制一个应用程序执行
+			JobManager工作流程:
+			  a.JobManager接收到要执行的应用程序，这个程序包括：作业图(JobGraph)、逻辑
+				数据流图(logical dataflow graph)和打包了所有的类、库和其他资源的JAR包。
+			  b.JobManager会把JobGraph转换成一个物理层面的数据流图——执行图(ExecutionGraph),
+				包含了所有可以并发执行的任务。
+			  c.JobManager会向资源管理器(ResourceManager)请求执行任务必要的资源，也就是
+			    任务管理器(TaskManager)上的插槽(slot)。一旦它获取到足够的资源，就会将
+				执行图分发到真正运行它们的TaskManager上。在运行过程中，JobManager会负责
+				所有需要中央协调的操作，比如说检查点(checkpoints)的协调。
+		(2) TaskManager(任务管理器)：Flink中的工作进程。通常在Flink中会有多个TaskManager
+									运行，每一个TaskManager都包含了一定数量的插槽(slots)。
+									插槽的数量限制了TaskManager能够执行的任务数量。
+			TaskManager工作流程：
+			  a.启动后，TaskManager会向资源管理器注册它的插槽，收到资源管理器的指令后，
+			    TaskManager就会将一个或多个插槽提供给JobManager调用。JobManager可以向
+				插槽分配任务(tasks)来执行了。
+			  b.TaskManager执行过程中可以跟其他运行同一程序的TaskManager交换数据
+			
+			每一个TaskManager可以理解为一个JVM进程,它可能会在独立的线程上执行一个或多个子任务.
+			为了控制一个TaskManager接受多少个task,TaskManager通过task slot来控制.
+			(一个TaskManager至少有一个slot)
+			默认情况下,Flink允许子任务共享slot,即使它们是不同任务的子任务.这样的结果是,
+			一个slot可以保存作业的整个管道.
+		(3) ResourceManager(资源管理器)：主要负责管理TaskManager(任务管理器)的插槽(slot),
+										TaskManager插槽是Flink中定义的处理资源单元.
+				当JobManager申请插槽资源时，ResourceManager会将有空闲插槽的TaskManager
+				分配给JobManager。如果ResourceManager没有足够的插槽满足JobManager的需求，
+				它还可以向资源平台发起会话，以提供启动TaskManager进程的容器。
+		(4)Dispatcher:提供web UI
+	2.并行度
+		每一个特定算子的子任务个数就是其并行度
+		一般情况下一个stream的并行度为其所有算子中并行度中最大的并行度
+	3.Flink程序的三个组成部分
+		(1) Source:读取数据
+		(2) Transformation:利用各种算子进行处理加工
+		(3) Sink:负责输出
+		
+		
+		
+		
 		

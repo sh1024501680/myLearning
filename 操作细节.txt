@@ -213,7 +213,8 @@ Flume启动两种写法：
 	$ bin/flume-ng agent -c conf/ -n a1 -f job/file-flume-logger.conf -Dflume.root.logger=INFO,console
     
 flink提交任务：
-	
+    standalong：
+	  bin/flink run -c wc.StreamWordCount -p 2 ~/FlinkTutorial-1.0-SNAPSHOT-jar-with-dependencies.jar --host centos7-101 --port 7777
     
     
     
