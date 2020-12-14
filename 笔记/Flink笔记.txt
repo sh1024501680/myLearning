@@ -80,8 +80,67 @@
 		(1) Source:读取数据
 		(2) Transformation:利用各种算子进行处理加工
 		(3) Sink:负责输出
+	4.窗口分配器(Window assigner)
+		window()方法接收的输入参数是一个WindowAssigner
+		 (*)window()方法必须在KeyBy后使用
+		WindowAssigner 负责将每条输入的数据分发到正确的window中
+		Flink提供了通用的WindowAssigner：
+			滚动窗口(tumbling window)
+			滑动窗口(sliding window)
+			会话窗口(session window)
+			全局窗口(global window)
+		窗口函数(window function)：定义了要对窗口收集的数据做的计算操作
+			增量聚合函数：每条数据到来就计算，保持一个简单的状态
+				ReduceFunction,AggregateFunction
+			全窗口函数：先把窗口所有数据收集起来，计算的时候遍历所有数据
+				ProcessWindowFunction
+		其他可选API(windowStream调用)
+			trigger()触发器：定义window什么时候关闭，触发计算并输出结果
+			evictor():定义移除某些数据的逻辑
+			allowedLateness:允许处理迟到的数据
+			sideOutputLateData()：将迟到的数据放入侧输出流
+			getSideOutput():获取侧输出流（DataStream操作）
+		确定当前窗口的起始点：当前窗口的整数倍
+	5.水位线(水印)WaterMark:
+		为了避免乱序数据带来计算不准确
+		WaterMark是一种衡量Event Time 进展的机制，可以设定延迟触发
+		WaterMark用于处理乱序事件，通常与window结合来实现
+		数据流中的WaterMark用于表示timestamp小于WaterMark的数据，都已经到达了，因此
+			window的执行也是由WaterMark触发的
+		WaterMark用来让程序自己平衡延迟和结果正确性
+		watermark是一条特殊的数据记录，必须单调递增，以保证任务的事件时钟在向前推进，
+		而不是在后退，watermark与数据的时间戳相关
+		生成机制：
+			a.周期性：AssignerWithPeriodicWatermarks
+			b.单点式：AssignerWithPunctuatedWatermarks
+	6.状态
+		算子状态
+		键控状态：
+			a.声明一个键控状态
+			b.读取状态
+			c.对状态赋值
+	7.检查点算法
+		    检查点分界线(Checkpoint Barrier)：Flink的检查点算法用到了一种成为
+		分界线(barrier)的特殊数据形式，用来把一条流上数据按照不同的检查点分开
 		
+		    分界线之前到来的数据状态更改，都会被包含在当前分界线所属检查点中，
+		分界线之后的数据导致的所有更改，会被包含在之后的检查点中。
 		
+		    JobManager会向每个source任务发送一条带有新检查点ID的消息，通过这种
+		方式来启动检查点
 		
+		    source将它的状态写入检查点，并发出一个检查点barrier
+			
+		    状态后端在状态存入检查点之后，会返回通知给source任务，source任务就会
+		向JobManager确认检查点完成
+		
+		    分界线对齐：barrier向下游传递，sum任务会等待所有输入分区的barrier到达
+			
+		    对于barrier已经到达的分区，继续到达的数据会被缓存
+			
+		    barrier尚未到达的分区，数据会被正常处理
+			
+		    当收到所有输入分区的barrier时，任务就将其状态保存到后端的检查点中，
+		然后将barrier继续向下游转发
 		
 		
