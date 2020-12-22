@@ -114,11 +114,39 @@
 			a.周期性：AssignerWithPeriodicWatermarks
 			b.单点式：AssignerWithPunctuatedWatermarks
 	6.状态
-		算子状态
+		    不能跨任务访问状态，同一个分区访问相同的状态
+		
+		算子状态：
+			数据结构：
+				列表状态
+				联合列表状态
 		键控状态：
-			a.声明一个键控状态
-			b.读取状态
-			c.对状态赋值
+			根据输入数据流中定义的键(key)来维护和访问的
+			
+			Flink为每一个key维护一个状态实例，并将具有相同键的所有实例，
+			都分区到同一个子任务中，这个任务会维护和处理这个key对应的状态
+			
+			当任务处理一条数据时，它会自动将状态的访问范围限定为当前数据的key
+			
+			数据结构：
+				值状态
+				列表状态
+				映射状态(K-V对)
+				聚合状态
+				
+		广播状态
+		
+		状态后端 
+			MemoryStateBackend:内存级的状态后端，会将键控状态作为内存中的对象
+				进行管理，将它们存储在TaskManager的JVM堆上，而将checkpoint存储
+				在JobManager的内存中。
+				特点：快速、低延迟，但不稳定
+			FsStateBackend:将checkpoint存到远程的持久化文件系统(FileSystem)上，
+				而对于本地状态，跟MemoryStateBacnend一样，也会存在TaskManager
+				的JVM堆上
+				特点：同时拥有内存级的访问速度，和更好的容错保证
+			RocksDBStateBackend:将所有状态序列化后，存入本地的RocksDB中存储。
+		
 	7.检查点(Checkpoint)
 		    检查点分界线(Checkpoint Barrier)：Flink的检查点算法用到了一种成为
 		分界线(barrier)的特殊数据形式，用来把一条流上数据按照不同的检查点分开
