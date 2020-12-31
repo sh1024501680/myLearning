@@ -40,7 +40,7 @@ mysql使用正则批量删除表：
     执行sql的结果：DROP TABLE as_record_11,as_record_11_history;
 
 mysql修改自增id起始值(单机mysql)：
-    alter table dc_meta_table AUTO_INCREMENT=3362
+    alter table dc_meta_table AUTO_INCREMENT=1
 
 hive导入未分区数据到分区表
     #开启动态分区设置
@@ -48,6 +48,11 @@ hive导入未分区数据到分区表
     set hive.exec.dynamic.partition.mode = nonstrict
     # 导入未分区数据到分区表
     insert overwrite table t1 partition(dt) select c1,c2 dt from t2;
+hive时间戳：默认10位，单位 秒
+	时间戳转化为日期：
+		from_unixtime(1571709884000/1000); //可以增加第二个参数，表示转化出来的日期类型
+	日期转化为时间戳：（单位  秒）
+		unix_timestamp('2020-09-30','yyyy-MM-dd')
 
 编译Hadoop2.8.5源码
     1.安装maven
