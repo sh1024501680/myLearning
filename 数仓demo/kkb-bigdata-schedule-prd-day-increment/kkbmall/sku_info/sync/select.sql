@@ -1,0 +1,1 @@
+SELECT `id`, `spu_id`, `price`, `sku_name`, `sku_desc`, `weight`, `tm_id`, `category3_id`, `sku_default_img`, `create_time` FROM kkbmall.sku_info

@@ -53,6 +53,9 @@ hive时间戳：默认10位，单位 秒
 		from_unixtime(1571709884000/1000); //可以增加第二个参数，表示转化出来的日期类型
 	日期转化为时间戳：（单位  秒）
 		unix_timestamp('2020-09-30','yyyy-MM-dd')
+	hive-site.xml修改jdbcURL(useSSL=false) &用'&amp;'转义
+	<value>jdbc:mysql://centos7-103:3306/metastore?createDatabaseIfNotExist=true&amp;useSSL=false</value>
+	
 
 编译Hadoop2.8.5源码
     1.安装maven
@@ -159,7 +162,7 @@ Hibernate中的HQL模糊查询语句：
           占位符不能带数字
           
 maven：
-    <!-- 根据不同的环境使用不同的配置文件,使用方法： 'mvn clean package -P test' 不添加参数-P默认为dev -->
+    <!-- 根据不同的环境使用不同的配置文件,使用方法： 'mvn clean package -P prod' 不添加参数-P默认为dev -->
     <profiles>
         <profile>
             <id>dev</id>
@@ -209,6 +212,8 @@ Java：Integer包装类可为空，int基础类型不能为空
       spring Autowired 注入null，原因：未被spring管理。解决：1.添加@Component
 	  2.如果调用注入bean的对象是new 声明的，注入方式无法获取对应bean实例，
 	    需要手动获取，用ApplicationContext等方式
+	properties.load(xx.class.getResourceAsStream(当前类同路径下配置文件));
+	做法：在resources文件夹下新建相同路径的包，将配置文件放入相同包名下
 
 Tomcat:首页host-manager无法访问时，修改webapps/host-manager/META-INF/context.xml
         allow="^.*$"

@@ -1,0 +1,1 @@
+./mysql2hive_all.sh  mysql2hive_kkbmall_base-category1.properties  20201002
