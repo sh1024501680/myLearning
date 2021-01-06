@@ -1,1 +1,0 @@
-SELECT `id`, `login_name`, `nick_name`, `passwd`, `name`, `phone_num`, `email`, `head_img`, `user_level`, `birthday`, `gender`, `create_time`, `operate_time` FROM kkbmall.user_info

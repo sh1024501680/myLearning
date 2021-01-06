@@ -1,1 +1,0 @@
-./mysql2hive_all.sh    mysql2hive_kkbmall_base_trademark.properties  20201002

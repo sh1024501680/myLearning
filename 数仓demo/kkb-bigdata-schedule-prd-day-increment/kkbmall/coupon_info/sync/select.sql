@@ -1,1 +1,0 @@
-SELECT `id`, `coupon_name`, `coupon_type`, `condition_amount`, `condition_num`, `activity_id`, `benefit_amount`, `benefit_discount`, `create_time`, `range_type`, `spu_id`, `tm_id`, `category3_id`, `limit_num`, `operate_time`, `expire_time` FROM  ods_kkbmall.coupon_info
