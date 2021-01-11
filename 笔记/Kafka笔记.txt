@@ -1,0 +1,14 @@
+一、概念
+	1. kafak是一个分布式发布-订阅模式的消息服务工具，依赖于zookeeper进行工作。
+	2.Producer：消息生产者，想kafka发信息的客户端
+	  consumer：消息消费者，向kafka broker取消息的客户端
+	  consumer group：消费者组，由多个consumer组成
+			组内每个消费者消费不同分区数据
+			一个分区只能组内一个消费者消费
+			消费者组之间不受影响
+	  broker：Kafka集群中的每一个服务器都是一个Broker，消费者将从broker拉取
+			订阅的消息。一个broker可以容纳多个topic。
+	  topic：可以理解为一个队列，生产者和消费者面向的都是一个队列
+	  partition：一个topic可以分为多个topic，每个partition都是一个有序的队列
+	  replication：副本
+	  
