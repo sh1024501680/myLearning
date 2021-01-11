@@ -55,7 +55,12 @@ hive时间戳：默认10位，单位 秒
 		unix_timestamp('2020-09-30','yyyy-MM-dd')
 	hive-site.xml修改jdbcURL(useSSL=false) &用'&amp;'转义
 	<value>jdbc:mysql://centos7-103:3306/metastore?createDatabaseIfNotExist=true&amp;useSSL=false</value>
-	
+	hiveserver2：
+		配置hiveserver2：修改hive-site.xml
+		hive.server2.enable.doAs 属性值修改为falses
+			设置成false则，yarn作业获取到的hiveserver2用户都为hive用户,设置成true则为提交用户的身份
+		hive.server2.thrift.bind.host 设置hiveserver2绑定主机
+		hive.server2.thrift.port 设置hiveserver2 thrift 端口
 
 编译Hadoop2.8.5源码
     1.安装maven
