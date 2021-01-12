@@ -61,6 +61,8 @@ hive时间戳：默认10位，单位 秒
 			设置成false则，yarn作业获取到的hiveserver2用户都为hive用户,设置成true则为提交用户的身份
 		hive.server2.thrift.bind.host 设置hiveserver2绑定主机
 		hive.server2.thrift.port 设置hiveserver2 thrift 端口
+	hive HQL取json值  get_json_object(json字段名,'$.key')
+	hive外部表修复分区：msck repair table 表名
 
 编译Hadoop2.8.5源码
     1.安装maven
