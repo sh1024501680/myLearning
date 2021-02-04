@@ -42,12 +42,45 @@ mysql使用正则批量删除表：
 mysql修改自增id起始值(单机mysql)：
     alter table dc_meta_table AUTO_INCREMENT=1
 
+hue安装：依赖安装后make apps报错->使用PREFIX=/opt/install/ make install
+	启动后报错 OperationalError: attempt to write a readonly database
+	需要创建hue用户，并将/usr/local/hue、/var/log/hue (编译hue的路径)目录的所有权交给hue用户
+	
+hue集成hive的坑：
+	TSocket read 0 bytes：修改hive-site.xml：
+	hive.server2.authentication 值改为 NOSASL
+	<property>
+		<name>hive.server2.authentication</name>
+		<!--<value>NONE</value>-->
+		<value>NOSASL</value>
+    </description>
+	之后提示Thrift version configured by property thrift_version might be too high：
+	修改hue配置文件
+	thrift_version=7
+	查询窗口中文报错：
+		Incorrect string value:… for column ：
+		  修改mysql编码为utf8或utf8mb4
+		'ascii' codec can't decode byte：
+		  新建sitecustomize.py文件
+		  $ cd /usr/lib/python2.7/site-packages 
+		  $ vim sitecustomize.py
+		    # encoding=utf8
+			import sys
+			reload(sys)
+			sys.setdefaultencoding('utf8')
+	
 hive导入未分区数据到分区表
     #开启动态分区设置
     set hive.exec.dynamic.partition =true
     set hive.exec.dynamic.partition.mode = nonstrict
     # 导入未分区数据到分区表
     insert overwrite table t1 partition(dt) select c1,c2 dt from t2;
+hive开启本地模式：
+	set hive.exec.mode.local.auto=true;
+	-- 设置输入数据小于该值，使用本地模式 52428800:50MB  134217728:128MB
+	set hive.exec.mode.local.auto.inputbytes.max=134217728;
+	-- 设置maptask个数小于5使用本地模式
+	set hive.exec.mode.local.auto.input.files.max=5;
 hive时间戳：默认10位，单位 秒
 	时间戳转化为日期：
 		from_unixtime(1571709884000/1000); //可以增加第二个参数，表示转化出来的日期类型
@@ -57,7 +90,7 @@ hive时间戳：默认10位，单位 秒
 	<value>jdbc:mysql://centos7-103:3306/metastore?createDatabaseIfNotExist=true&amp;useSSL=false</value>
 	hiveserver2：
 		配置hiveserver2：修改hive-site.xml
-		hive.server2.enable.doAs 属性值修改为falses
+		hive.server2.enable.doAs 属性值修改为false
 			设置成false则，yarn作业获取到的hiveserver2用户都为hive用户,设置成true则为提交用户的身份
 		hive.server2.thrift.bind.host 设置hiveserver2绑定主机
 		hive.server2.thrift.port 设置hiveserver2 thrift 端口
