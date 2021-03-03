@@ -73,8 +73,16 @@ hive导入未分区数据到分区表
     #开启动态分区设置
     set hive.exec.dynamic.partition =true
     set hive.exec.dynamic.partition.mode = nonstrict
+    #
+    set hive.exec.max.dynamic.partitions.pernode=1000;
+    set hive.exec.max.dynamic.partitions=10000;
+    set hive.exec.max.created.files=10000;
+    
     # 导入未分区数据到分区表
     insert overwrite table t1 partition(dt) select c1,c2 dt from t2;
+hive删除时间范围分区：
+	alter table wmxy_dwd.dwd_qianzhi_customer_status_day drop partition(dt_>='2020-01-01',dt_<'2021-01-01');
+	
 hive开启本地模式：
 	set hive.exec.mode.local.auto=true;
 	-- 设置输入数据小于该值，使用本地模式 52428800:50MB  134217728:128MB
@@ -165,7 +173,7 @@ hive时间戳：默认10位，单位 秒
 		</property>
 	3.若无索引，手动创建lzo索引
 hadoop jar $HADOOP_HOME/share/hadoop/common/hadoop-lzo-0.4.20.jar  com.hadoop.compression.lzo.DistributedLzoIndexer  /output/part-r-00000.lzo
-
+Hadoop 删除文件跳过回收站(释放空间)：rm命令加上 -skipTrash 参数
     
 前端复选框全选js
     function chk(obj) {
@@ -294,6 +302,8 @@ linux：
 		swappiness值的大小对如何使用swap分区是有着很大的联系。swappiness=0的时候表示
 	最大限度使用物理内存，然后才是 swap空间，swappiness＝100的时候表示积极的使用swap
 	分区，并且把内存上的数据及时的搬运到swap空间里面。linux的基本默认设置为60。
+	字符串截取： ${var:0:4}从第一个字符开始截取4个字符
+	字符转数字：$(($var+0))或$[var+0]  做一下运算
     
 Flume启动两种写法：
 	$ bin/flume-ng agent --conf conf/ --name a1 --conf-file conf/flume-telnet.conf -Dflume.root.logger==INFO,console
