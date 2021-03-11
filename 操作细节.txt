@@ -115,6 +115,10 @@ hive时间戳：默认10位，单位 秒
 		  t1 as(select xxx),
 		  t2 as(select xxx)
 		select xxxx
+hive强大的系统函数：
+	collect系列：hive group by 的列必须在select 后，使用collect可以取出不在select 后的列值
+		collect_list：将分组中的某列转为一个数组返回(不去重)
+		collect_set：将分组中的某列转为一个数组返回(去重)
 
 编译Hadoop2.8.5源码
     1.安装maven
@@ -304,6 +308,14 @@ linux：
 	分区，并且把内存上的数据及时的搬运到swap空间里面。linux的基本默认设置为60。
 	字符串截取： ${var:0:4}从第一个字符开始截取4个字符
 	字符转数字：$(($var+0))或$[var+0]  做一下运算
+		转换指定进制：value=$((n#${key}Xm)) 
+                               n：欲转成的进制数； 2进制就是2，10进制就是10
+							   key：字符串
+							   X：操作符，如+ - * /  &...
+							   m：操作数
+		实例：10进制字符32加上32
+              a='32'
+              value=$((10#${a}+32))
     
 Flume启动两种写法：
 	$ bin/flume-ng agent --conf conf/ --name a1 --conf-file conf/flume-telnet.conf -Dflume.root.logger==INFO,console
