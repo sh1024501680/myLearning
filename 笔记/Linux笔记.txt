@@ -55,13 +55,13 @@
               -f  循环读取，等同于--follow=descriptor,根据文件描述符进行追踪,当文件改名或被删除,追踪停止
               -F  等同于--follow=name --retry,根据文件名进行追踪,并保持重试,即该文件被删除或改名后,如果再次创建相同的文件名,会继续追踪
               tailf  等同于tail -f -n 10,与tail -f不同的是，如果文件不增长，它不会去访问磁盘文件
-			  -q 不显示处理信息
-			  -v 显示详细的处理信息
-			  -c<数目> 显示的字节数
-			  -n<行数> 显示文件的尾部 n 行内容
-			  --pid=PID 与-f合用,表示在进程ID,PID死掉之后结束
-			  -q, --quiet, --silent 从不输出给出文件名的首部
-			  -s, --sleep-interval=S 与-f合用,表示在每次反复的间隔休眠S秒
+              -q 不显示处理信息
+              -v 显示详细的处理信息
+              -c<数目> 显示的字节数
+              -n<行数> 显示文件的尾部 n 行内容
+              --pid=PID 与-f合用,表示在进程ID,PID死掉之后结束
+              -q, --quiet, --silent 从不输出给出文件名的首部
+              -s, --sleep-interval=S 与-f合用,表示在每次反复的间隔休眠S秒
         16) 重定向命令
               cat a.txt> newFile  前面命令执行的结果覆盖写到后面文件内
               >>  同上,但是不会覆盖,而是追加
@@ -516,3 +516,22 @@
                 echo ------------hadoop0$host------------
                 rsync -rvl $pdir/$fname $user@hadoop0$host:$pdir
               done
+        集群群启脚本:
+            #!/bin/bash
+            case $1 in 
+            "start"){
+                for i in hadoop101 hadoop102 hadoop103
+                do
+                    echo "********$i********"
+                    ssh $i "/opt/module/kafka/bin/kafka-server-start.sh -daemon /opt/module/kafka/config/server.properties"
+                done
+            };;
+            "stop"){
+                for i in hadoop101 hadoop102 hadoop103
+                do
+                    echo "********$i********"
+                    ssh $i "/opt/module/kafka/bin/kafka-server-stop.sh"
+                done
+            };;
+            esac
+            
