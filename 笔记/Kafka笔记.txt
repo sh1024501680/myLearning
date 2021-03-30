@@ -39,6 +39,49 @@
 	bin/kafka-console-producer.sh --topic first --broker-list hadoop101:9092  开启一个生产者
 	bin/kafka-console-consumer.sh --topic first --bootstrap-server hadoop101:9092 [--from-beginning] [从最小偏移量消费]消费一个主题(连接bootstrap会创建本地主题保存偏移量)
 	
+三、Kafka架构
+	1.工作流程
+		topic是逻辑概念，partition是物理概念。每个partition对应一个log文件，主题+分区命名。log文件中存储producer产生的数据。
+	producer产生的数据会不断被追加到文件末尾，并且每条数据都有自己的offset。消费者组中的每个消费者都会自己记录自己消费到了哪个
+	offset，以便出错恢复时可以从上次的位置继续消费。
+	.index文件存储偏移量(n,xx) n:表示第n条消息  xx：表示该消息的起始偏移量。再加上保存的消息长度信息，可以快速在.log文件查询该消息。
+	2.生产者
+	  1)分区策略
+	    分区原因：方便在集群中扩展；提高并发，以partition为单位读取
+	  2)分区原则
+	    a.指明partition的情况下，直接将指定的值作为partition值
+		b.没有指明partition值但有key的情况下，将key的hash值与topic的分区数取余得到partition值
+		c.既没有partition又没有key，第一次生成一个随机整数，将这个值与topic的的分区数取余得到partition值(round-robin算法)
+	  3)数据可靠性保证
+	    概述：为保证producer发送的数据可靠，topic的partition收到producer发送的数据后，需要向topic发送ack确认收到。
+		如果producer收到ack，继续发送下一轮消息，否则重发。
+		
+		kafka副本数据同步策略：全部完成同步，才发送ack。
+			这样做的好处是，选举新的leader时，容忍n台故障，只需n+1台机器。缺点：延迟高
+			(若其中一台机器挂掉，永远不能发送ack，集群将停止发送消息)
+	    ISR：
+		leader维护了一个动态的 in-sync replica set(ISR)。存储了和leader保持一致的follower集合。当ISR中的follower完成同步后，leader就会
+		给follower发送ack。如果follower长时间未给leader同步数据，则将该follower踢出ISR。该事件阈值由 replica.lag.time.max.ms 参数设定。
+		leader发生故障时，从ISR中选择一个follower作为新的leader。
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	
 	
 	
