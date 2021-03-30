@@ -43,32 +43,32 @@ mysql修改自增id起始值(单机mysql)：
     alter table dc_meta_table AUTO_INCREMENT=1
 
 hue安装：依赖安装后make apps报错->使用PREFIX=/opt/install/ make install
-	启动后报错 OperationalError: attempt to write a readonly database
-	需要创建hue用户，并将/usr/local/hue、/var/log/hue (编译hue的路径)目录的所有权交给hue用户
-	
+    启动后报错 OperationalError: attempt to write a readonly database
+    需要创建hue用户，并将/usr/local/hue、/var/log/hue (编译hue的路径)目录的所有权交给hue用户
+    
 hue集成hive的坑：
-	TSocket read 0 bytes：修改hive-site.xml：
-	hive.server2.authentication 值改为 NOSASL
-	<property>
-		<name>hive.server2.authentication</name>
-		<!--<value>NONE</value>-->
-		<value>NOSASL</value>
+    TSocket read 0 bytes：修改hive-site.xml：
+    hive.server2.authentication 值改为 NOSASL
+    <property>
+        <name>hive.server2.authentication</name>
+        <!--<value>NONE</value>-->
+        <value>NOSASL</value>
     </description>
-	之后提示Thrift version configured by property thrift_version might be too high：
-	修改hue配置文件
-	thrift_version=7
-	查询窗口中文报错：
-		Incorrect string value:… for column ：
-		  修改mysql编码为utf8或utf8mb4
-		'ascii' codec can't decode byte：
-		  新建sitecustomize.py文件
-		  $ cd /usr/lib/python2.7/site-packages 
-		  $ vim sitecustomize.py
-		    # encoding=utf8
-			import sys
-			reload(sys)
-			sys.setdefaultencoding('utf8')
-	
+    之后提示Thrift version configured by property thrift_version might be too high：
+    修改hue配置文件
+    thrift_version=7
+    查询窗口中文报错：
+        Incorrect string value:… for column ：
+          修改mysql编码为utf8或utf8mb4
+        'ascii' codec can't decode byte：
+          新建sitecustomize.py文件
+          $ cd /usr/lib/python2.7/site-packages 
+          $ vim sitecustomize.py
+            # encoding=utf8
+            import sys
+            reload(sys)
+            sys.setdefaultencoding('utf8')
+    
 hive导入未分区数据到分区表
     #开启动态分区设置
     set hive.exec.dynamic.partition =true
@@ -81,44 +81,44 @@ hive导入未分区数据到分区表
     # 导入未分区数据到分区表
     insert overwrite table t1 partition(dt) select c1,c2 dt from t2;
 hive删除时间范围分区：
-	alter table wmxy_dwd.dwd_qianzhi_customer_status_day drop partition(dt_>='2020-01-01',dt_<'2021-01-01');
-	
+    alter table wmxy_dwd.dwd_qianzhi_customer_status_day drop partition(dt_>='2020-01-01',dt_<'2021-01-01');
+    
 hive开启本地模式：
-	set hive.exec.mode.local.auto=true;
-	-- 设置输入数据小于该值，使用本地模式 52428800:50MB  134217728:128MB
-	set hive.exec.mode.local.auto.inputbytes.max=134217728;
-	-- 设置maptask个数小于5使用本地模式
-	set hive.exec.mode.local.auto.input.files.max=5;
+    set hive.exec.mode.local.auto=true;
+    -- 设置输入数据小于该值，使用本地模式 52428800:50MB  134217728:128MB
+    set hive.exec.mode.local.auto.inputbytes.max=134217728;
+    -- 设置maptask个数小于5使用本地模式
+    set hive.exec.mode.local.auto.input.files.max=5;
 hive时间戳：默认10位，单位 秒
-	时间戳转化为日期：
-		from_unixtime(1571709884000/1000); //可以增加第二个参数，表示转化出来的日期类型
-	日期转化为时间戳：（单位  秒）
-		unix_timestamp('2020-09-30','yyyy-MM-dd')
-	hive-site.xml修改jdbcURL(useSSL=false) &用'&amp;'转义
-	<value>jdbc:mysql://centos7-103:3306/metastore?createDatabaseIfNotExist=true&amp;useSSL=false</value>
-	hiveserver2：
-		配置hiveserver2：修改hive-site.xml
-		hive.server2.enable.doAs 属性值修改为false
-			设置成false则，yarn作业获取到的hiveserver2用户都为hive用户,设置成true则为提交用户的身份
-		hive.server2.thrift.bind.host 设置hiveserver2绑定主机
-		hive.server2.thrift.port 设置hiveserver2 thrift 端口
-	hive HQL取json值  get_json_object(json字段名,'$.key')
-	hive外部表修复分区：msck repair table 表名
-	hive强制删除数据库：drop database tmp cascade;
-	+--------------+--------------------+-------------+---------------+----------------+
-	| 日期处理函数 |      功能总结      |  当前日期   |     语句      |      结果      |
-	+--------------+--------------------+-------------+---------------+----------------+
-	| date_format  |  将日期进行格式化  | 2021-01-19  |               |                |
-	+--------------+--------------------+-------------+---------------+----------------+
-	提取子查询：
-		with 
-		  t1 as(select xxx),
-		  t2 as(select xxx)
-		select xxxx
+    时间戳转化为日期：
+        from_unixtime(1571709884000/1000); //可以增加第二个参数，表示转化出来的日期类型
+    日期转化为时间戳：（单位  秒）
+        unix_timestamp('2020-09-30','yyyy-MM-dd')
+    hive-site.xml修改jdbcURL(useSSL=false) &用'&amp;'转义
+    <value>jdbc:mysql://centos7-103:3306/metastore?createDatabaseIfNotExist=true&amp;useSSL=false</value>
+    hiveserver2：
+        配置hiveserver2：修改hive-site.xml
+        hive.server2.enable.doAs 属性值修改为false
+            设置成false则，yarn作业获取到的hiveserver2用户都为hive用户,设置成true则为提交用户的身份
+        hive.server2.thrift.bind.host 设置hiveserver2绑定主机
+        hive.server2.thrift.port 设置hiveserver2 thrift 端口
+    hive HQL取json值  get_json_object(json字段名,'$.key')
+    hive外部表修复分区：msck repair table 表名
+    hive强制删除数据库：drop database tmp cascade;
+    +--------------+--------------------+-------------+---------------+----------------+
+    | 日期处理函数 |      功能总结      |  当前日期   |     语句      |      结果      |
+    +--------------+--------------------+-------------+---------------+----------------+
+    | date_format  |  将日期进行格式化  | 2021-01-19  |               |                |
+    +--------------+--------------------+-------------+---------------+----------------+
+    提取子查询：
+        with 
+          t1 as(select xxx),
+          t2 as(select xxx)
+        select xxxx
 hive强大的系统函数：
-	collect系列：hive group by 的列必须在select 后，使用collect可以取出不在select 后的列值
-		collect_list：将分组中的某列转为一个数组返回(不去重)
-		collect_set：将分组中的某列转为一个数组返回(去重)
+    collect系列：hive group by 的列必须在select 后，使用collect可以取出不在select 后的列值
+        collect_list：将分组中的某列转为一个数组返回(不去重)
+        collect_set：将分组中的某列转为一个数组返回(去重)
 
 编译Hadoop2.8.5源码
     1.安装maven
@@ -157,25 +157,25 @@ hive强大的系统函数：
     3.解压缩Hadoop源码并进入Hadoop源码文件夹
         mvn package -Pdist,native -DskipTests -Dtar
     hadoop配置lzo压缩：
-	1.将编译好后的hadoop-lzo-0.4.20.jar 放入 $HADOOP_HOME/share/hadoop/common/,分发至其他节点
-	2.core-site.xml增加配置支持LZO压缩，分发至其他节点
-		<property>
-			<name>io.compression.codecs</name>
-			<value>
-				org.apache.hadoop.io.compress.GzipCodec,
-				org.apache.hadoop.io.compress.DefaultCodec,
-				org.apache.hadoop.io.compress.BZip2Codec,
-				org.apache.hadoop.io.compress.SnappyCodec,
-				com.hadoop.compression.lzo.LzoCodec,
-				com.hadoop.compression.lzo.LzopCodec
-			</value>
-		</property>
+    1.将编译好后的hadoop-lzo-0.4.20.jar 放入 $HADOOP_HOME/share/hadoop/common/,分发至其他节点
+    2.core-site.xml增加配置支持LZO压缩，分发至其他节点
+        <property>
+            <name>io.compression.codecs</name>
+            <value>
+                org.apache.hadoop.io.compress.GzipCodec,
+                org.apache.hadoop.io.compress.DefaultCodec,
+                org.apache.hadoop.io.compress.BZip2Codec,
+                org.apache.hadoop.io.compress.SnappyCodec,
+                com.hadoop.compression.lzo.LzoCodec,
+                com.hadoop.compression.lzo.LzopCodec
+            </value>
+        </property>
 
-		<property>
-			<name>io.compression.codec.lzo.class</name>
-			<value>com.hadoop.compression.lzo.LzoCodec</value>
-		</property>
-	3.若无索引，手动创建lzo索引
+        <property>
+            <name>io.compression.codec.lzo.class</name>
+            <value>com.hadoop.compression.lzo.LzoCodec</value>
+        </property>
+    3.若无索引，手动创建lzo索引
 hadoop jar $HADOOP_HOME/share/hadoop/common/hadoop-lzo-0.4.20.jar  com.hadoop.compression.lzo.DistributedLzoIndexer  /output/part-r-00000.lzo
 Hadoop 删除文件跳过回收站(释放空间)：rm命令加上 -skipTrash 参数
     
@@ -236,8 +236,8 @@ Windows 下查看端口被占用：netstat -ano | findstr ":8089 "
   TCP    [::1]:57840            [::1]:8089             TIME_WAIT       0
 使用：tasklist | findstr "7080" 查到：
         java.exe         7080 Console          1    807,712 K
-	cmd合并当前文件夹多个文件：
-	copy * file.txt
+    cmd合并当前文件夹多个文件：
+    copy * file.txt
 
 Hibernate中的HQL模糊查询语句：
     "select entity from EcardTableSql entity where entity.tableName like ? "
@@ -268,15 +268,15 @@ maven上传本地jar到私服命令：
     mvn deploy:deploy-file -DgroupId=walkersoft-tcp-common -DartifactId=walkersoft-tcp-common -Dversion=0.1.1 -Dpackaging=jar -DrepositoryId=newcapec-bigdata -Dfile=walkersoft-tcp-common-0.1.1.jar -Durl=http://192.168.112.61:8081/repository/newcapec-bigdata/
     坑：在maven的conf下settings.xml里面去掉阿里云的镜像，推荐在pom文件中使用<repositories/>标签
         配置仓库地址
-	私服地址：
-	<repositories>
-		<repository>
+    私服地址：
+    <repositories>
+        <repository>
             <id>nexus-aliyun</id>
             <name>Public Repositories</name>
             <url>http://maven.aliyun.com/nexus/content/groups/public/</url>
         </repository>
     </repositories>
-	<pluginRepositories>
+    <pluginRepositories>
         <pluginRepository>
             <id>nexus-aliyun</id>
             <name>Public Repositories</name>
@@ -293,46 +293,52 @@ maven上传本地jar到私服命令：
 Java：Integer包装类可为空，int基础类型不能为空
       Integer做条件判断会自动拆箱(转int)，如果Integer为null报NullPointerException
       spring Autowired 注入null，原因：未被spring管理。解决：1.添加@Component
-	  2.如果调用注入bean的对象是new 声明的，注入方式无法获取对应bean实例，
-	    需要手动获取，用ApplicationContext等方式
-	properties.load(xx.class.getResourceAsStream(当前类同路径下配置文件));
-	做法：在resources文件夹下新建相同路径的包，将配置文件放入相同包名下
+      2.如果调用注入bean的对象是new 声明的，注入方式无法获取对应bean实例，
+        需要手动获取，用ApplicationContext等方式
+    properties.load(xx.class.getResourceAsStream(当前类同路径下配置文件));
+    做法：在resources文件夹下新建相同路径的包，将配置文件放入相同包名下
 
 Tomcat:首页host-manager无法访问时，修改webapps/host-manager/META-INF/context.xml
         allow="^.*$"
     
 linux：
-	rz 命令安装：yum install -y lrzsz 
-		swappiness值的大小对如何使用swap分区是有着很大的联系。swappiness=0的时候表示
-	最大限度使用物理内存，然后才是 swap空间，swappiness＝100的时候表示积极的使用swap
-	分区，并且把内存上的数据及时的搬运到swap空间里面。linux的基本默认设置为60。
-	字符串截取： ${var:0:4}从第一个字符开始截取4个字符
-	字符转数字：$(($var+0))或$[var+0]  做一下运算
-		转换指定进制：value=$((n#${key}Xm)) 
+    rz 命令安装：yum install -y lrzsz 
+        swappiness值的大小对如何使用swap分区是有着很大的联系。swappiness=0的时候表示
+    最大限度使用物理内存，然后才是 swap空间，swappiness＝100的时候表示积极的使用swap
+    分区，并且把内存上的数据及时的搬运到swap空间里面。linux的基本默认设置为60。
+    字符串截取： ${var:0:4}从第一个字符开始截取4个字符
+    字符转数字：$(($var+0))或$[var+0]  做一下运算
+        转换指定进制：value=$((n#${key}Xm)) 
                                n：欲转成的进制数； 2进制就是2，10进制就是10
-							   key：字符串
-							   X：操作符，如+ - * /  &...
-							   m：操作数
-		实例：10进制字符32加上32
+                               key：字符串
+                               X：操作符，如+ - * /  &...
+                               m：操作数
+        实例：10进制字符32加上32
               a='32'
               value=$((10#${a}+32))
+    获取当前周是本年第几周：
+        周一为开始的，国际ISO周：date +%V -d"2021-01-03"  53
+                                 date +%V -d"2021-01-04"  01
+        周一为开始的：date +%W -d"2021-01-03"  00
+                      date +%W -d"2021-01-04"  01
+        
     
 Flume启动两种写法：
-	$ bin/flume-ng agent --conf conf/ --name a1 --conf-file conf/flume-telnet.conf -Dflume.root.logger==INFO,console
-	$ bin/flume-ng agent -c conf/ -n a1 -f job/file-flume-logger.conf -Dflume.root.logger=INFO,console
+    $ bin/flume-ng agent --conf conf/ --name a1 --conf-file conf/flume-telnet.conf -Dflume.root.logger==INFO,console
+    $ bin/flume-ng agent -c conf/ -n a1 -f job/file-flume-logger.conf -Dflume.root.logger=INFO,console
     
 flink提交任务：
     standalong：
-	  bin/flink run -c wc.StreamWordCount -p 2 ~/FlinkTutorial-1.0-SNAPSHOT-jar-with-dependencies.jar --host centos7-101 --port 7777
+      bin/flink run -c wc.StreamWordCount -p 2 ~/FlinkTutorial-1.0-SNAPSHOT-jar-with-dependencies.jar --host centos7-101 --port 7777
     
 Redis：
-	执行make安装报错：‘struct redisServer’没有名为‘xx’的成员
-	执行如下操作：
-		gcc -v                             # 查看gcc版本
-		yum -y install centos-release-scl  # 升级到9.1版本
-		yum -y install devtoolset-9-gcc devtoolset-9-gcc-c++ devtoolset-9-binutils
-		scl enable devtoolset-9 bash
-		# 以上为临时启用，如果要长期使用gcc 9.1的话：
-		echo "source /opt/rh/devtoolset-9/enable" >>/etc/profile
+    执行make安装报错：‘struct redisServer’没有名为‘xx’的成员
+    执行如下操作：
+        gcc -v                             # 查看gcc版本
+        yum -y install centos-release-scl  # 升级到9.1版本
+        yum -y install devtoolset-9-gcc devtoolset-9-gcc-c++ devtoolset-9-binutils
+        scl enable devtoolset-9 bash
+        # 以上为临时启用，如果要长期使用gcc 9.1的话：
+        echo "source /opt/rh/devtoolset-9/enable" >>/etc/profile
     
     
