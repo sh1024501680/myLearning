@@ -59,11 +59,23 @@
 		kafka副本数据同步策略：全部完成同步，才发送ack。
 			这样做的好处是，选举新的leader时，容忍n台故障，只需n+1台机器。缺点：延迟高
 			(若其中一台机器挂掉，永远不能发送ack，集群将停止发送消息)
+		
+		ack：0  不重复发数据。无论leader是否挂掉都可能会丢数据
+		     1  leader不挂不会丢数据
+			-1  ISR>=2 不会丢数据 producer等待broker的ack，partition的leader和follower全部落盘成功才返回ack。但是如果在follower
+			    同步完成后，broker发送ack之前，leader发生故障，会造成数据重复。
+		
 	    ISR：
 		leader维护了一个动态的 in-sync replica set(ISR)。存储了和leader保持一致的follower集合。当ISR中的follower完成同步后，leader就会
 		给follower发送ack。如果follower长时间未给leader同步数据，则将该follower踢出ISR。该事件阈值由 replica.lag.time.max.ms 参数设定。
 		leader发生故障时，从ISR中选择一个follower作为新的leader。
 	
+	    **  follower故障时会被踢出ISR，待follower恢复，将读取本地记录的HW(High Watermark)，将log文件高于HW的部分截掉，从HW开始向leader同步，
+		follower的LEO(Log End Offset)大于等于该partition的HW，即follower追上leader，就可以重新加入ISR。
+		**  Leader故障时会从ISR中选择一个新的leader，其余的follower将log文件的高于HW的部分截掉，然后从新的leader同步数据。
+		注意：这只能保证副本之间的数据一致性，并不能保证数据不丢失或不重复
+	
+	3.消费者 
 	
 	
 	
