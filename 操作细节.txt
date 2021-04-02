@@ -321,7 +321,21 @@ linux：
                                  date +%V -d"2021-01-04"  01
         周一为开始的：date +%W -d"2021-01-03"  00
                       date +%W -d"2021-01-04"  01
-        
+    
+    shell判断月初、周初：
+        DATE=`date +%d`
+        if [ $(($DATE+0)) -ne 1 ]
+        then
+          echo "不是1号,退出"
+          exit 0
+        fi
+
+        DATE=`date +%w`
+        if [ $(($DATE+0)) -ne 1 ]
+        then
+          echo "不是1号,退出"
+          exit 0
+        fi
     
 Flume启动两种写法：
     $ bin/flume-ng agent --conf conf/ --name a1 --conf-file conf/flume-telnet.conf -Dflume.root.logger==INFO,console
