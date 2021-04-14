@@ -74,6 +74,7 @@
         19) history  查看命令历史
     2、文件权限
         1) chmod  更改文件权限,rwx对应二进制111,所以rwx值为十进制7
+                -v 显示权限变更的详细资料
               chmod 777 [-R] 文件名  更改文件权限为所有用户可读可写可执行,-R表示递归修改
               chmod u-r 文件名  取消用户可读权限
               chmod g+w 文件名  添加组可写权限
@@ -534,4 +535,10 @@
                 done
             };;
             esac
-            
+        判断hdfs文件是否存在(hive表分区):
+            #!/bin/bash
+            hadoop fs -test -e /user/hive/warehouse/cp_transport_check_log/create_date_=$DATESTR
+            if [ $? -ne 0 ] ;then
+                echo "Error! Table default.cp_transport_check_log PARTITION(create_date_='$DATESTR') is not exist"
+                exit 1
+            fi
