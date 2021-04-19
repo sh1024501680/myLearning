@@ -44,7 +44,11 @@
 							-Dspark.deploy.recoveryMode=ZOOKEEPER
 							-Dspark.deploy.zookeeper.url=hadoop01,hadoop02,hadoop03
 							-Dspark.deploy.zookeeper.dir=/spark"
-				
+			3.配置yarn模式
+			    $ vim spark-default.conf
+				添加：
+				spark.yarn.historyServer.address=hadoop-senior01:18080
+				spark.history.ui.port=18080
 	(3)配置Job History Server
 		$ cp spark-default.conf.template spark-default.conf
 		$ vim spark-default.conf 添加如下内容
@@ -63,7 +67,27 @@
 			spark.history.fs.logDirectory --> 配置了改属性，start-history-server.sh无需显示指定
 									路径，SPARK History Server页面只展示该路径下的信息
 	(4)同步配置文件到集群所有节点			
-三、Spark Core
+三、Spark相关概念
+	1.Driver
+		Spark驱动器节点，用于执行Spark任务中的main方法，负责实际代码的执行工作。Driver在Spark作业执行时主要负责：
+		> 将用户程序转化为作业(Job)
+		> 在Executor之间调度任务(task)
+		> 跟踪Executor的执行情况
+		> 通过UI展示查询运行情况
+	2.executor
+			Spark Executor是集群中工作节点(Worker)中的一个JVM进程，负责在Spark作业中运行具体任务(Task)，任务彼此之间相互独立。
+		Spark应用启动时，Executor节点被同时启动，并且始终伴随着整个Spark应用的生命周期而存在。如果有Executor节点发生了故障或崩溃，
+		Spark应用也可以继续执行，会将出错节点上的任务调度到其他Executor节点上继续运行。
+		Executor两个核心功能：
+		> 负责运行组成Spark应用的任务，并将结果返回给驱动器进程
+		> 它们通过自身的块管理器(Block Manager)为用户程序中要求缓存的RDD提供内存式存储。RDD是直接缓存在Executor进程内的，因此任务
+		可以在运行时充分利用缓存数据加速运算。
+	3.Master & Worker
+		Master：负责资源调度和分配的一个进程，并进行集群的监控等职责，类似于Yarn中的RM
+		Worker：一个Worker运行在集群中的一台服务器上，由Mater分配资源对数据进行并行的处理和计算，类似于Yarn中的NM
+	4.并行度(Parallelism)
+		整个集群并行执行任务的数量称之为并行度。
+四、Spark Core
 	Spark Core的核心工作：操作RDD
 		RDD的创建->转换->缓存->行动->输出
 	(1)Spark RDD：
@@ -73,12 +97,21 @@
 		RDD是分区的，RDD里面的具体数据是分布在多台机器上的Executor里面的。堆内内存和堆外内存+磁盘
 		RDD是弹性的：
 			存储：Spark会根据用户的配置或者当前Spark的应用运行情况自动将RDD的数据缓存到内存或磁盘。
-				  他是一个对用户不可见的封装的功能。
+				  他是一个对用户不可见的封装的功能（内存与磁盘的自动切换）
 			容错：当你的RDD数据被删除或者丢失的时候，可以通过血统或者检查点机制恢复数据。
 			计算：计算是分层的，有应用->Job->Stage->TaskSet-Task  每一层都有对应的计算的保障与重复
 				  机制。保障你的计算不会由与一些突发因素而终止。
 			分片：你可以根据业务需求或者一些算子来重新调整RDD中的数据分布。	
-		
+		**  RDD的数据处理方式类似于IO流，也有装饰者设计模式
+		**  RDD是不保存数据的，但是IO可以临时保存一部分数据
+	
+		RDD的核心属性：
+			分区列表：用于执行任务时并行计算，是实现分布式计算的重要属性。
+			分区计算函数：使用分区函数对每个分区进行计算
+			RDD之间的依赖关系：需要将多个计算模型进行组合时，就需要将多个RDD建立依赖关系
+			分区器  
+			首选位置
+			
 		RDD的三种创建方式：
 			1.可以从一个Scala集合里面创建
 				sc.parallelize(seq)  把seq这个数据并行化分片到节点
@@ -203,6 +236,17 @@
 			4、设置本地地址到spark.driver.host这个变量中
 			5、Debug调试
 				
+	(3)执行原理
+		    Spark框架在执行时，先申请资源，然后将应用程序的数据处理逻辑分解成一个一个的计算任务，然后将任务分发到已经分配
+	    资源的计算节点上，按照指定的计算模型进行数据计算，最后得到计算结果。
+		
+		1.启动Yarn集群环境
+		2.Spark通过申请资源创建调度节点和计算节点
+		3.Spark框架根据需求将计算逻辑根据分区划分成不同的任务
+		4.调度节点将任务根据计算节点状态发送到对应的计算节点进行计算
+		
+		    RDD在整个流程中主要是将逻辑进行封装，并生成Task发送给Executor节点执行计算
+		
 四、SparkSQL			
 				
 				
