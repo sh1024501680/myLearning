@@ -127,17 +127,35 @@
 			转换：通过操作将一个RDD转换成另外一个RDD
 			行动：将一个RDD进行求值或输出
 			(RDD的所有转换操作都是懒执行的，只有当行动操作出现spark才真的去运行)
+			
 		常用的转换算子(transformations)：
 			def map[U:ClassTag](f:T=>U):RDD[U]  将函数应用于RDD的每一元素，并返回一个新的RDD
 			def filter(f:T=>Boolean):RDD[T]  通过提供的产生boolean条件的表达式来返回结果为True的新的RDD
 			def flatMap[U:ClassTag](f:T=>TraversableOnce[U]):RDD[U]  将函数应用于RDD中的每一项，
 											对于每一项都产生一个集合，并将集合中的元素压扁成一个集合
+				sc.makeRDD(List(List(1,2),3,List(4,5))).flatMap(
+															data => {
+															data match {
+																case list:List[_] => list
+																case dat => List(dat)
+															}
+															})
+				
 			def mapPartitions[U:ClassTag](f:Iterator[T]=>Iterator[U],preservesPartitioning:Boolean=false):RDD[U]
 				将函数应用于RDD的每一个分区，每一个分区运行一次，函数需要能够接受Iterator类型，然后返回Iterator
+				rdd.mapPartitionsWithIndex((index, iter) => {
+											if (index == 1) {
+												iter
+											} else
+												Nil.iterator
+											})
+			
 			def mapPartitionsWothIndex  将函数应用于RDD中的每一个分区，每一个分区运行一次，函数能够
 					接受一个分区的索引值和一个代表分区内所有数据的Iterator类型，需要返回Iterator类型
 			def sample(withReplacement:Boolean,fraction:Double,seed:Long={})  在RDD中以seed为种子
 					返回大致上有fraction比例个数据样本RDD，withReplacement表述是否采用放回式抽样	
+				sc.makeRDD(List(1,2,3,4,5,6,7,8,9,10)).sample(true, 0.4).collect().mkString(",")
+				
 			def union(other:RDD[T]):RDD[T]  将两个RDD中的元素合并，并返回一个新的RDD
 			def intersection(other:RDD[T]):RDD[T]  将两个RDD中的元素做交集，并返回一个新的RDD
 			def distinct():RDD[T]  将当前RDD进行去重后，返回一个新的RDD
@@ -170,12 +188,21 @@
 			def coalesce(numPartitions: Int, shuffle: Boolean = false,
 							partitionCoalescer: Option[PartitionCoalescer] = Option.empty)
             				(implicit ord: Ordering[T] = null)
-					 缩减分区数，用于大数据集过滤后，提高小数据集的执行效率
+					 缩减分区数，用于大数据集过滤后，提高小数据集的执行效率,默认情况下不会将分区的数据打乱重新组合
+					 可能会导致数据不均衡，导致数据倾斜
+				sc.makeRDD(List(1,2,3,4,5,6),3).coalesce(2)
+				sc.makeRDD(List(1,2,3,4,5,6),2).coalesce(3,true)  shuffle=true可以数据均衡，也可以实现扩大分区。
+				
 			def repartition(numPartitions: Int)(implicit ord: Ordering[T] = null): RDD[T]
 					根据你传入的分区数重新通过网络分区所有数据，重型操作
+					底层使用coalesce
+					
 	   <k,v>def repartitionAndSortWithinPartitions(partitioner: Partitioner): RDD[(K, V)]
 					性能要比repartition要高。在给定的partitioner内部进行排序
+			
 			def glom():RDD[Array[T]]    将每一个分区形成一个数组，形成新的RDD类型时RDD[Array[T]]
+				sc.makeRDD(List(1,2,3,4),2).glom().map(arr => arr.max)
+			
 			def mapValues[U](f: V => U): RDD[(K, U)]   将函数应用于（k，v）结果中的v，返回新的RDD
 			def subtract(other: RDD[T]): RDD[T]  计算差的一种函数去除两个RDD中相同的元素，不同的RDD将保留下来
 			
@@ -247,6 +274,19 @@
 		
 		    RDD在整个流程中主要是将逻辑进行封装，并生成Task发送给Executor节点执行计算
 		
+		关于读取文件(单个文件)：spark读取文件，采用Hadoop的方式读取，一行一行读；读取时以偏移量为单位，偏移量不会被重复读取
+		e.g. 假如有一文件内容如下：
+			/*
+				1@@
+				2@@
+				3
+			*/
+			一共7字节(含回车换行符),sc.textFile("datas/1.txt",3)第二个参数表示设定分区数，但 7byte/3=2......1
+			多出来的1字节占每个分区的1/3=33% 超过了10%，按Hadoop分区规则加一个分区，所以一个3个分区
+			0号分区：[0,3] => 1@@2 
+			1号分区：[3,6] => 3 
+			2号分区：[6,7] =>  
+		多个文件，以文件为单位 
 四、SparkSQL			
 				
 				
