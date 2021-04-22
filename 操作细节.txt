@@ -69,26 +69,32 @@ hue集成hive的坑：
             reload(sys)
             sys.setdefaultencoding('utf8')
     
-hive导入未分区数据到分区表
-    #开启动态分区设置
-    set hive.exec.dynamic.partition =true
-    set hive.exec.dynamic.partition.mode = nonstrict
-    #
-    set hive.exec.max.dynamic.partitions.pernode=1000;
-    set hive.exec.max.dynamic.partitions=10000;
-    set hive.exec.max.created.files=10000;
-    
-    # 导入未分区数据到分区表
-    insert overwrite table t1 partition(dt) select c1,c2 dt from t2;
-hive删除时间范围分区：
+hive 常用属性配置
+	hive导入未分区数据到分区表
+		#开启动态分区设置
+		set hive.exec.dynamic.partition =true
+		set hive.exec.dynamic.partition.mode = nonstrict
+		#
+		set hive.exec.max.dynamic.partitions.pernode=1000;
+		set hive.exec.max.dynamic.partitions=10000;
+		set hive.exec.max.created.files=10000;
+	
+	数据倾斜调优
+	hive.groupby.skewindata=true 数据倾斜时负载均衡，当选项设定为true，生成的查询计划会有两个MRJob。第一个MRJob 中，Map的输出结果集合会随机分布到Reduce中，每个Reduce做部分聚合操作，并输出结果，这样处理的结果是相同的GroupBy Key有可能被分发到不同的Reduce中，从而达到负载均衡的目的；第二个MRJob再根据预处理的数据结果按照GroupBy Key分布到Reduce中（这个过程可以保证相同的GroupBy Key被分布到同一个Reduce中），最后完成最终的聚合操作。
+	
+	hive开启本地模式：
+		set hive.exec.mode.local.auto=true;
+		-- 设置输入数据小于该值，使用本地模式 52428800:50MB  134217728:128MB
+		set hive.exec.mode.local.auto.inputbytes.max=134217728;
+		-- 设置maptask个数小于5使用本地模式
+		set hive.exec.mode.local.auto.input.files.max=5;		
+		
+hive 分区操作
+    删除时间范围分区：
     alter table wmxy_dwd.dwd_qianzhi_customer_status_day drop partition(dt_>='2020-01-01',dt_<'2021-01-01');
-    
-hive开启本地模式：
-    set hive.exec.mode.local.auto=true;
-    -- 设置输入数据小于该值，使用本地模式 52428800:50MB  134217728:128MB
-    set hive.exec.mode.local.auto.inputbytes.max=134217728;
-    -- 设置maptask个数小于5使用本地模式
-    set hive.exec.mode.local.auto.input.files.max=5;
+    # 导入未分区数据到分区表
+	insert overwrite table t1 partition(dt) select c1,c2 dt from t2;
+
 hive时间戳：默认10位，单位 秒
     时间戳转化为日期：
         from_unixtime(1571709884000/1000); //可以增加第二个参数，表示转化出来的日期类型
@@ -355,4 +361,13 @@ Redis：
         # 以上为临时启用，如果要长期使用gcc 9.1的话：
         echo "source /opt/rh/devtoolset-9/enable" >>/etc/profile
     
-    
+Python:
+    虚拟环境：
+        virtualenv ENV 在当前目录下创建名为ENV的虚拟环境
+        virtualenv -p /usr/local/bin/python2.7 ENV2 参数 -p 指定python版本创建虚拟环境
+        virtualenv --system-site-packages ENV 参数 --system-site-packages 指定创建虚拟环境时继承系统三方库
+        cd ~/ENV 跳转到虚拟环境的文件夹
+        source bin/activate 激活虚拟环境
+        deactivate 退出虚拟环境
+        删除虚拟环境
+        直接删除虚拟环境所在目录即可
