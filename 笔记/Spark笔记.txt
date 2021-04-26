@@ -204,6 +204,7 @@
 				[("a",6)]
 				val rdd = sc.makeRDD(List(("a",1),("a",2),("a",3),("a",4)),2)
 				rdd.aggregateByKey(0)((x,y)=>math.max(x,y),(x,y)=>x+y)
+				最终的返回结果和初始值的类型保持一致
 				
        <k,v>def groupByKey():RDD[(K,Iterable[V])]  将相同的Key值聚集，输出一个(K,Iterable[V])的RDD
 			将相同key的数据分在一个组中，形成一个对偶元组，元组的第一个元素是key，第二个元素是相同key的value的集合
@@ -215,31 +216,64 @@
                             numPartitions:Int):RDD[(K,C)]
                     根据Key分别使用CreateCombiner和mergeValue进行相同key的数据聚集，通过mergeCombiners将
                 各个分区最终的结果进行聚集。
+				第一个参数：相同key的第一个数据进行结构的转换，实现操作
+				第二个参数：分区内计算规则
+				第三个参数：分区间计算规则
 
        <k,v>def foldByKey(zeroValue: V,partitioner: Partitioner)(func: (V, V) => V): RDD[(K, V)]    
                 aggregateByKey的简化操作，seqop和combop相同
+				当aggregateByKey 分区间和分区内计算规则相同时可用 foldByKey 替代
+				
        <k,v>def sortByKey(ascending:Boolean=true,numPartitions:Int=self.partitions.length):RDD[(K, V)]
                 在一个(K,V)的RDD上调用，K必须实现Ordered接口，返回一个按照key进行排序的(K,V)的RDD
             
        <k,v>def join[W](other: RDD[(K, W)], partitioner: Partitioner): RDD[(K, (V, W))]    在类型为(K,V)和(K,W)的RDD上调用，
-                返回一个相同key对应的所有元素对在一起的(K,(V,W))的RDD。需要注意的是，他只会返回key在两个RDD中都存在的情况
+                返回一个相同key对应的所有元素对在一起的(K,(V,W))的RDD。
+				需要注意的是，他只会返回key在两个RDD中都存在的情况(key没匹配上就不出现在结果中)
+				如果两个数据源中的key多个匹配，可能会出现笛卡尔积
+				
+				
        <k,v>def cogroup[W](other: RDD[(K, W)], partitioner: Partitioner): RDD[(K, (Iterable[V], Iterable[W]))]
                     在类型为(K,V)和(K,W)的RDD上调用，返回一个(K,(Iterable<V>,Iterable<W>))类型的RDD，注意，如果
                 V和W的类型相同，也不放在一块，还是单独存放.
+				分组+连接
             
        <k,v>def repartitionAndSortWithinPartitions(partitioner: Partitioner): RDD[(K, V)]
                     性能要比repartition要高。在给定的partitioner内部进行排序
 
-
-            
-            
-            
+		reduceByKey:
+			combineByKeyWithClassTag[V](
+				(v:V)=> v,    // 第一个值不会参与计算
+				func,         // 分区内计算规则
+				func          // 分区间计算规则
+			)
+			
+		aggregateByKey:
+			combineByKeyWithClassTag[U](
+				(v:V)=>cleanedFunc(createZero(),v),    // 初始值和第一个key的value的值进行的分区内数据操作
+				cleanedSeqOp,                          // 分区内计算规则
+				comOp,                                 // 分区间计算规则
+			)
+			
+		foldByKey:
+            combineByKeyWithClassTag[V](
+				(v:V)=>cleanedFunc(createZero(),v),   // 初始值和第一个key的value的值进行的分区内数据操作
+				cleanedFunc,                          // 分区内计算规则
+				cleanedFunc,                          // 分区间计算规则
+			)
+			
+        combineByKey:
+			combineByKeyWithClassTag(
+				createCombiner,        // 相同key的第一条数据进行的处理
+				mergeValue             // 分区内数据的处理函数
+				mergeCombiners         // 分区间数据的处理函数
+			)
             
         行动算子(action)：
             def takeSample(withReplacement:Boolean,num:Int,seed:Long):Array[T]  抽样但是返回一个scala集合
             def reduce(f: (T, T) => T): T   通过func函数聚集RDD中的所有元素
             def collect(): Array[T]  在驱动程序中，以数组的形式返回数据集的所有元素
-            def count(): Long   返回RDD中的元素个数
+
             def first(): T   返回RDD中的第一个元素
             def take(num: Int): Array[T]  返回RDD中的前n个元素
             def takeOrdered(num: Int)(implicit ord: Ordering[T])   返回前几个的排序
@@ -247,10 +281,15 @@
                     aggregate函数将每个分区里面的元素通过seqOp和初始值进行聚合，然后用
                 combine函数将每个分区的结果和初始值(zeroValue)进行combine操作。这个函数
                 最终返回的类型不需要和RDD中元素类型一致
+				初始值会参与分区内计算，并参与分区间计算
+				
             def fold(zeroValue: T)(op:(T, T) => T): T  折叠操作，aggregate的简化操作，seqop和combop一样
             def saveAsTextFile(path: String): Unit   将RDD以文本文件的方式保存到本地或者HDFS中
             def saveAsObjectFile(path: String): Unit  将RDD中的元素以序列化后对象形式保存到本地或者HDFS中。
+            def count(): Long   返回RDD中的元素个数
             def countByKey(): Map[K, Long]  针对(K,V)类型的RDD，返回一个(K,Int)的map，表示每一个key对应的元素个数
+			def countByValue()
+			
             def foreach(f: T => Unit): Unit  在数据集的每一个元素上，运行函数func进行更新
         
         RDD的依赖关系
