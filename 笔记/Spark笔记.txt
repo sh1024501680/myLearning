@@ -192,82 +192,82 @@
             
        <k,v>def partitionBy(partitioner:Partitioner):RDD[(K,V)]  根据设置的分区器重新将RDD进行分区，返回新的RDD
        <k,v>def reduceByKey(func:(V,V)=>V):RDD[(K,V)]  根据Key值将相同Key的元组的值用func计算，返回新的RDD
-			如果key只有1个，不参加两两聚合；
-			支持分区内预聚合(combine)功能，可以有效减少shuffle时落盘的数据量；
-			分区内和分区间计算规则相同
-			
+            如果key只有1个，不参加两两聚合；
+            支持分区内预聚合(combine)功能，可以有效减少shuffle时落盘的数据量；
+            分区内和分区间计算规则相同
+            
        <k,v>def aggregateByKey[U:ClassTag](zeroValue:U,partitioner:Partitioner)(seqOp:(U,V)=>U,comOp:(U,U)=>U):RDD[(K,U)]
                 通过seqOp函数将每一个分区里面的数据和初始值迭代代入函数返回最终值，comOp将每一个分区
                 返回的最终值根据key进行合并操作。
-				[("a",1),("a",2)],[("a",3),("a",4)]
-				[("a",2)],[("a",4)]
-				[("a",6)]
-				val rdd = sc.makeRDD(List(("a",1),("a",2),("a",3),("a",4)),2)
-				rdd.aggregateByKey(0)((x,y)=>math.max(x,y),(x,y)=>x+y)
-				最终的返回结果和初始值的类型保持一致
-				
+                [("a",1),("a",2)],[("a",3),("a",4)]
+                [("a",2)],[("a",4)]
+                [("a",6)]
+                val rdd = sc.makeRDD(List(("a",1),("a",2),("a",3),("a",4)),2)
+                rdd.aggregateByKey(0)((x,y)=>math.max(x,y),(x,y)=>x+y)
+                最终的返回结果和初始值的类型保持一致
+                
        <k,v>def groupByKey():RDD[(K,Iterable[V])]  将相同的Key值聚集，输出一个(K,Iterable[V])的RDD
-			将相同key的数据分在一个组中，形成一个对偶元组，元组的第一个元素是key，第二个元素是相同key的value的集合
-			只分组，不聚合
-	   
+            将相同key的数据分在一个组中，形成一个对偶元组，元组的第一个元素是key，第二个元素是相同key的value的集合
+            只分组，不聚合
+       
        <k,v>def combineByKey(createCombiner:V=>C,
                             mergeValue:(C,V)=>C,
                             mergeCombiners:(C,C)=>C,
                             numPartitions:Int):RDD[(K,C)]
                     根据Key分别使用CreateCombiner和mergeValue进行相同key的数据聚集，通过mergeCombiners将
                 各个分区最终的结果进行聚集。
-				第一个参数：相同key的第一个数据进行结构的转换，实现操作
-				第二个参数：分区内计算规则
-				第三个参数：分区间计算规则
+                第一个参数：相同key的第一个数据进行结构的转换，实现操作
+                第二个参数：分区内计算规则
+                第三个参数：分区间计算规则
 
        <k,v>def foldByKey(zeroValue: V,partitioner: Partitioner)(func: (V, V) => V): RDD[(K, V)]    
                 aggregateByKey的简化操作，seqop和combop相同
-				当aggregateByKey 分区间和分区内计算规则相同时可用 foldByKey 替代
-				
+                当aggregateByKey 分区间和分区内计算规则相同时可用 foldByKey 替代
+                
        <k,v>def sortByKey(ascending:Boolean=true,numPartitions:Int=self.partitions.length):RDD[(K, V)]
                 在一个(K,V)的RDD上调用，K必须实现Ordered接口，返回一个按照key进行排序的(K,V)的RDD
             
        <k,v>def join[W](other: RDD[(K, W)], partitioner: Partitioner): RDD[(K, (V, W))]    在类型为(K,V)和(K,W)的RDD上调用，
                 返回一个相同key对应的所有元素对在一起的(K,(V,W))的RDD。
-				需要注意的是，他只会返回key在两个RDD中都存在的情况(key没匹配上就不出现在结果中)
-				如果两个数据源中的key多个匹配，可能会出现笛卡尔积
-				
-				
+                需要注意的是，他只会返回key在两个RDD中都存在的情况(key没匹配上就不出现在结果中)
+                如果两个数据源中的key多个匹配，可能会出现笛卡尔积
+                
+                
        <k,v>def cogroup[W](other: RDD[(K, W)], partitioner: Partitioner): RDD[(K, (Iterable[V], Iterable[W]))]
                     在类型为(K,V)和(K,W)的RDD上调用，返回一个(K,(Iterable<V>,Iterable<W>))类型的RDD，注意，如果
                 V和W的类型相同，也不放在一块，还是单独存放.
-				分组+连接
+                分组+连接
             
        <k,v>def repartitionAndSortWithinPartitions(partitioner: Partitioner): RDD[(K, V)]
                     性能要比repartition要高。在给定的partitioner内部进行排序
 
-		reduceByKey:
-			combineByKeyWithClassTag[V](
-				(v:V)=> v,    // 第一个值不会参与计算
-				func,         // 分区内计算规则
-				func          // 分区间计算规则
-			)
-			
-		aggregateByKey:
-			combineByKeyWithClassTag[U](
-				(v:V)=>cleanedFunc(createZero(),v),    // 初始值和第一个key的value的值进行的分区内数据操作
-				cleanedSeqOp,                          // 分区内计算规则
-				comOp,                                 // 分区间计算规则
-			)
-			
-		foldByKey:
+        reduceByKey:
             combineByKeyWithClassTag[V](
-				(v:V)=>cleanedFunc(createZero(),v),   // 初始值和第一个key的value的值进行的分区内数据操作
-				cleanedFunc,                          // 分区内计算规则
-				cleanedFunc,                          // 分区间计算规则
-			)
-			
+                (v:V)=> v,    // 第一个值不会参与计算
+                func,         // 分区内计算规则
+                func          // 分区间计算规则
+            )
+            
+        aggregateByKey:
+            combineByKeyWithClassTag[U](
+                (v:V)=>cleanedFunc(createZero(),v),    // 初始值和第一个key的value的值进行的分区内数据操作
+                cleanedSeqOp,                          // 分区内计算规则
+                comOp,                                 // 分区间计算规则
+            )
+            
+        foldByKey:
+            combineByKeyWithClassTag[V](
+                (v:V)=>cleanedFunc(createZero(),v),   // 初始值和第一个key的value的值进行的分区内数据操作
+                cleanedFunc,                          // 分区内计算规则
+                cleanedFunc,                          // 分区间计算规则
+            )
+            
         combineByKey:
-			combineByKeyWithClassTag(
-				createCombiner,        // 相同key的第一条数据进行的处理
-				mergeValue             // 分区内数据的处理函数
-				mergeCombiners         // 分区间数据的处理函数
-			)
+            combineByKeyWithClassTag(
+                createCombiner,        // 相同key的第一条数据进行的处理
+                mergeValue             // 分区内数据的处理函数
+                mergeCombiners         // 分区间数据的处理函数
+            )
             
         行动算子(action)：
             def takeSample(withReplacement:Boolean,num:Int,seed:Long):Array[T]  抽样但是返回一个scala集合
@@ -281,25 +281,17 @@
                     aggregate函数将每个分区里面的元素通过seqOp和初始值进行聚合，然后用
                 combine函数将每个分区的结果和初始值(zeroValue)进行combine操作。这个函数
                 最终返回的类型不需要和RDD中元素类型一致
-				初始值会参与分区内计算，并参与分区间计算
-				
+                初始值会参与分区内计算，并参与分区间计算
+                
             def fold(zeroValue: T)(op:(T, T) => T): T  折叠操作，aggregate的简化操作，seqop和combop一样
             def saveAsTextFile(path: String): Unit   将RDD以文本文件的方式保存到本地或者HDFS中
             def saveAsObjectFile(path: String): Unit  将RDD中的元素以序列化后对象形式保存到本地或者HDFS中。
             def count(): Long   返回RDD中的元素个数
             def countByKey(): Map[K, Long]  针对(K,V)类型的RDD，返回一个(K,Int)的map，表示每一个key对应的元素个数
-			def countByValue()
-			
+            def countByValue()
+            
             def foreach(f: T => Unit): Unit  在数据集的每一个元素上，运行函数func进行更新
-        
-        RDD的依赖关系
-        1、RDD的依赖关系分为窄依赖和宽依赖。
-        2、窄依赖是说父RDD的每一个分区最多被一个子RDD的分区应用，也就是他的出度为1。
-        3、宽依赖是说父RDD的每一个分区被多个子RDD的分区来应用，也就是他的出度大于等于2.
-        4、应用在整个过程中，RDD之间形成的产生关系，就叫做血统关系，RDD在没有持久化的时候
-           默认是不保存的，如果需要那么就要根据血统关系来重新计算。
-        5、应用在执行过程中，是分为多个Stage来进行的，划分Stage的关键就是判断是不是存在
-           宽依赖。从Action往前去推整个Stage的划分。
+
 
         
         
@@ -331,8 +323,8 @@
     (3)执行原理
             Spark框架在执行时，先申请资源，然后将应用程序的数据处理逻辑分解成一个一个的计算任务，然后将任务分发到已经分配
         资源的计算节点上，按照指定的计算模型进行数据计算，最后得到计算结果。
-		
-			Spark中，shuffle操作必须落盘处理，不能在内存中数据等待，会导致内存溢出。shuffle性能非常低。
+        
+            Spark中，shuffle操作必须落盘处理，不能在内存中数据等待，会导致内存溢出。shuffle性能非常低。
         
         1.启动Yarn集群环境
         2.Spark通过申请资源创建调度节点和计算节点
@@ -348,13 +340,39 @@
                 2@@
                 3
             */
-            一共7字节(含回车换行符),sc.textFile("datas/1.txt",3)第二个参数表示设定分区数，但 7byte/3=2......1
+            一共7字节(含回车换行符),sc.textFile("datas/1.txt",3)第二个参数表示设定分区数，但 7byte/3=2······1
             多出来的1字节占每个分区的1/3=33% 超过了10%，按Hadoop分区规则加一个分区，所以一个3个分区
             0号分区：[0,3] => 1@@2 
             1号分区：[3,6] => 3 
             2号分区：[6,7] =>  
         多个文件，以文件为单位 
-四、SparkSQL          
+        
+        RDD的依赖关系
+		
+		多个连续RDD的依赖关系，称之为血缘关系
+		每个RDD都会保存血缘关系
+		RDD不保存数据，为了提供容错性，需要将RDD之间的数据保存下来，一旦出现错误，可以根据血缘关系将数据源重新读取计算
+		
+        1、RDD的依赖关系分为窄依赖和宽依赖。
+        2、窄依赖是说父RDD的每一个分区最多被一个子RDD的分区应用，也就是他的出度为1。
+        3、宽依赖是说父RDD的每一个分区被多个子RDD的分区来应用，也就是他的出度大于等于2.
+        4、应用在整个过程中，RDD之间形成的产生关系，就叫做血统关系，RDD在没有持久化的时候
+           默认是不保存的，如果需要那么就要根据血统关系来重新计算。
+        5、应用在执行过程中，是分为多个Stage来进行的，划分Stage的关键就是判断是不是存在
+           宽依赖。从Action往前去推整个Stage的划分。
+		
+		RDD的阶段划分
+		当RDD中存在shuffle依赖时，阶段会自动增加一个
+		阶段的数量 = shuffle依赖的数量 + 1
+		ResultStage只有一个，最后需要执行的阶段
+		   
+    (4)编程相关
+        scala中类的构造参数其实是类的属性，构造参数需要进行闭包检测，其实就等同于类进行闭包检测
+        序列化：
+			val conf = new SparkConf().setAppName("serDemo").setMaster("")
+									  .set("spark.serializer","org.apache.spark.serializer.KryoSerializer")    //替换默认的序列化机制
+									  .registerKryoClasses(Array(classOf[DemoClass]))    //注册需要使用kryo序列化的类
+四、SparkSQL
                 
                 
                 
