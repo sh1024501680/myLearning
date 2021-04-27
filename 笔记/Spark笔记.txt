@@ -365,6 +365,14 @@
 		当RDD中存在shuffle依赖时，阶段会自动增加一个
 		阶段的数量 = shuffle依赖的数量 + 1
 		ResultStage只有一个，最后需要执行的阶段
+		
+		RDD任务划分
+		RDD任务切分中间分为：Application、Job、Stage和Task
+		Application：初始化一个SparkContext即生成一个Application
+		Job：一个Action算子就会生成一个Job
+		Stage：Stage等于宽依赖(ShuffleDependency)的个数加1
+		Task：一个Stage阶段中，最后一个RDD的分区个数就是Task的个数
+		任务的数量 = 当前阶段中最后一个RDD的分区数量
 		   
     (4)编程相关
         scala中类的构造参数其实是类的属性，构造参数需要进行闭包检测，其实就等同于类进行闭包检测
