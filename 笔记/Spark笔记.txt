@@ -348,11 +348,11 @@
         多个文件，以文件为单位 
         
         RDD的依赖关系
-		
-		多个连续RDD的依赖关系，称之为血缘关系
-		每个RDD都会保存血缘关系
-		RDD不保存数据，为了提供容错性，需要将RDD之间的数据保存下来，一旦出现错误，可以根据血缘关系将数据源重新读取计算
-		
+        
+        多个连续RDD的依赖关系，称之为血缘关系
+        每个RDD都会保存血缘关系
+        RDD不保存数据，为了提供容错性，需要将RDD之间的数据保存下来，一旦出现错误，可以根据血缘关系将数据源重新读取计算
+        
         1、RDD的依赖关系分为窄依赖和宽依赖。
         2、窄依赖是说父RDD的每一个分区最多被一个子RDD的分区应用，也就是他的出度为1。
         3、宽依赖是说父RDD的每一个分区被多个子RDD的分区来应用，也就是他的出度大于等于2.
@@ -360,51 +360,51 @@
            默认是不保存的，如果需要那么就要根据血统关系来重新计算。
         5、应用在执行过程中，是分为多个Stage来进行的，划分Stage的关键就是判断是不是存在
            宽依赖。从Action往前去推整个Stage的划分。
-		
-		RDD的阶段划分
-		当RDD中存在shuffle依赖时，阶段会自动增加一个
-		阶段的数量 = shuffle依赖的数量 + 1
-		ResultStage只有一个，最后需要执行的阶段
-		
-		RDD任务划分
-		RDD任务切分中间分为：Application、Job、Stage和Task
-		Application：初始化一个SparkContext即生成一个Application
-		Job：一个Action算子就会生成一个Job
-		Stage：Stage等于宽依赖(ShuffleDependency)的个数加1
-		Task：一个Stage阶段中，最后一个RDD的分区个数就是Task的个数
-		任务的数量 = 当前阶段中最后一个RDD的分区数量
-		
-		RDD的持久化
-		不一定为了重用，数据执行较长，或数据较重要的场合也可以使用持久化操作
-		检查点：
-		checkpoint需要落盘，需要指定检查点保存路径
-		一般保存在分布式存储系统中
-		cache：将数据临时存储在内存中进行数据重用
-				会在血缘关系中添加新的依赖。一旦出现问题，可以从头读取数据
-		persist：将数据临时存储在磁盘文件中进行数据重用
-				 涉及到磁盘IO，性能较低，但是数据安全
-				 如果作业完成，临时保存的文件就会丢失
-		checkpoint：将数据长久地保存在磁盘文件中进行数据重用
-					设计到磁盘IO，性能较低，但是数据安全
-					为了保证数据安全，一般情况下会单独执行作业
-					为了能够提高效率，一般情况下是和cache联合使用
-					执行过程中，会切断血缘关系，重新建立新的血缘关系
-					checkpoint等同于改变数据源
-		   
+        
+        RDD的阶段划分
+        当RDD中存在shuffle依赖时，阶段会自动增加一个
+        阶段的数量 = shuffle依赖的数量 + 1
+        ResultStage只有一个，最后需要执行的阶段
+        
+        RDD任务划分
+        RDD任务切分中间分为：Application、Job、Stage和Task
+        Application：初始化一个SparkContext即生成一个Application
+        Job：一个Action算子就会生成一个Job
+        Stage：Stage等于宽依赖(ShuffleDependency)的个数加1
+        Task：一个Stage阶段中，最后一个RDD的分区个数就是Task的个数
+        任务的数量 = 当前阶段中最后一个RDD的分区数量
+        
+        RDD的持久化
+        不一定为了重用，数据执行较长，或数据较重要的场合也可以使用持久化操作
+        检查点：
+        checkpoint需要落盘，需要指定检查点保存路径
+        一般保存在分布式存储系统中
+        cache：将数据临时存储在内存中进行数据重用
+                会在血缘关系中添加新的依赖。一旦出现问题，可以从头读取数据
+        persist：将数据临时存储在磁盘文件中进行数据重用
+                 涉及到磁盘IO，性能较低，但是数据安全
+                 如果作业完成，临时保存的文件就会丢失
+        checkpoint：将数据长久地保存在磁盘文件中进行数据重用
+                    设计到磁盘IO，性能较低，但是数据安全
+                    为了保证数据安全，一般情况下会单独执行作业
+                    为了能够提高效率，一般情况下是和cache联合使用
+                    执行过程中，会切断血缘关系，重新建立新的血缘关系
+                    checkpoint等同于改变数据源
+           
     (4)编程相关
         scala中类的构造参数其实是类的属性，构造参数需要进行闭包检测，其实就等同于类进行闭包检测
         序列化：
-			val conf = new SparkConf().setAppName("serDemo").setMaster("")
-									  .set("spark.serializer","org.apache.spark.serializer.KryoSerializer")    //替换默认的序列化机制
-									  .registerKryoClasses(Array(classOf[DemoClass]))    //注册需要使用kryo序列化的类
+            val conf = new SparkConf().setAppName("serDemo").setMaster("")
+                                      .set("spark.serializer","org.apache.spark.serializer.KryoSerializer")    //替换默认的序列化机制
+                                      .registerKryoClasses(Array(classOf[DemoClass]))    //注册需要使用kryo序列化的类
 
-	(5)累加器：
-			分布式共享只写变量。
-			累加器用来把Executor端变量信息聚合到Driver端。在Driver程序中定义的变量，在Executor端的每个Task都会得到这个变量的一个副本，
-		每个task更新这些副本的值后，传回Driver端进行merge
-		少加：转换算子调用累加器，如果没有行动算子，不会执行
-		多加：行动算子多次执行
-		一般情况下累加器会放置在行动算子中操作
+    (5)累加器：
+            分布式共享只写变量。
+            累加器用来把Executor端变量信息聚合到Driver端。在Driver程序中定义的变量，在Executor端的每个Task都会得到这个变量的一个副本，
+        每个task更新这些副本的值后，传回Driver端进行merge
+        少加：转换算子调用累加器，如果没有行动算子，不会执行
+        多加：行动算子多次执行
+        一般情况下累加器会放置在行动算子中操作
 四、SparkSQL
                 
                 
