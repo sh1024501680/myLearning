@@ -1,1033 +1,1035 @@
 一、Spring是什么
-	  Spring 是一个开源框架.
-	  Spring 为简化企业级应用开发而生. 使用 Spring 可以使简单的 JavaBean 实现以前只有 EJB 才能实现的功能.
-	  Spring 是一个 IOC(DI) 和 AOP 容器框架
-	- 轻量级：Spring 是非侵入性的 - 基于 Spring 开发的应用中的对象可以不依赖于 Spring 的 API
-	- 依赖注入(DI --- dependency injection、IOC)
-	- 面向切面编程(AOP --- aspect oriented programming)
-	- 容器: Spring 是一个容器, 因为它包含并且管理应用对象的生命周期
-	- 框架: Spring 实现了使用简单的组件配置组合成一个复杂的应用. 在 Spring 中可以使用 XML 和 Java 注解组合这些对象
-	- 一站式：在 IOC 和 AOP 的基础上可以整合各种企业应用的开源框架和优秀的第三方类库 （实际上 Spring 自身也提供了展现
-			  层的 SpringMVC 和 持久层的 Spring JDBC）
+      Spring 是一个开源框架.
+      Spring 为简化企业级应用开发而生. 使用 Spring 可以使简单的 JavaBean 实现以前只有 EJB 才能实现的功能.
+      Spring 是一个 IOC(DI) 和 AOP 容器框架
+    - 轻量级：Spring 是非侵入性的 - 基于 Spring 开发的应用中的对象可以不依赖于 Spring 的 API
+    - 依赖注入(DI --- dependency injection、IOC)
+    - 面向切面编程(AOP --- aspect oriented programming)
+    - 容器: Spring 是一个容器, 因为它包含并且管理应用对象的生命周期
+    - 框架: Spring 实现了使用简单的组件配置组合成一个复杂的应用. 在 Spring 中可以使用 XML 和 Java 注解组合这些对象
+    - 一站式：在 IOC 和 AOP 的基础上可以整合各种企业应用的开源框架和优秀的第三方类库 （实际上 Spring 自身也提供了展现
+              层的 SpringMVC 和 持久层的 Spring JDBC）
 二、Spring中的Bean配置
-	(1)IOC和DI
-		IOC(Inversion of Control)：其思想是反转资源获取的方向. 传统的资源查找方式要求组件向容器发起请求查找资源. 
-			                       作为回应, 容器适时的返回资源. 而应用了 IOC 之后, 则是容器主动地将资源推送给它
-								   所管理的组件, 组件所要做的仅是选择一种合适的方式来接受资源. 这种行为也被称为查找的被动形式
-		DI(Dependency Injection) — IOC 的另一种表述方式：即组件以一些预先定义好的方式(例如: setter 方法)接受来自如容器的资源注入.
-                           		  相对于 IOC 而言，这种表述更直接
+    (1)IOC和DI
+        IOC(Inversion of Control)：其思想是反转资源获取的方向. 传统的资源查找方式要求组件向容器发起请求查找资源. 
+                                   作为回应, 容器适时的返回资源. 而应用了 IOC 之后, 则是容器主动地将资源推送给它
+                                   所管理的组件, 组件所要做的仅是选择一种合适的方式来接受资源. 这种行为也被称为查找的被动形式
+        DI(Dependency Injection) — IOC 的另一种表述方式：即组件以一些预先定义好的方式(例如: setter 方法)接受来自如容器的资源注入.
+                                  相对于 IOC 而言，这种表述更直接
 
-	(2)配置Bean
-		- 配置形式：基于 XML 文件的方式；
-		****xml文件头：
-				<?xml version="1.0" encoding="UTF-8"?>
-				<beans xmlns="http://www.springframework.org/schema/beans"
-					xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-					xmlns:p="http://www.springframework.org/schema/p"			-> **** p命名空间
-					xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
-					
-				</beans>
-		****基于注解的方式：
-		  **常用的注解：
-		    @Component：标识一个组件
-			@Repository：标识为一个持久层的组件
-			@Service：标识为一个业务层的组件
-			@Controller：标识为一个表现层的组件
-			@AutoWired：自动装配
-			@Qualifier：具体的指定要装配的bean的id值
-		  **开启注解配置：
-			<context:component-scan base-package="基包"></context:component-scan>
-			use-default-filters="true/false":是否使用默认的过滤
-			
-			<context:include-filter type="annotation/assignable" expression="注解的全类名/组件类的全类名">
-			<context:include-filter>需要配合 use-default-filters="false" 来使用
-			<context:exclude-filter type="annotation/assignable" expression="注解的全类名/组件类的全类名"/>
-		  **@AutoWired
-			a.优先匹配兼容的类型来进行注入。如果有多个兼容的类型匹配，则再尝试使用被注入的属性名跟ioc容器中
-			  bean的id值进行匹配。
-			b.required：默认情况下，被@AutoWired 标注的属性必须要被装配。可以使用 required="false" 来改变默
-			  认的行为。
-			c.可以使用 @Qualifier来具体指定要装配的bean的id值。
-						
-		- Bean 的配置方式：通过全类名（反射）、通过工厂方法（静态工厂方法 & 实例工厂方法）、FactoryBean
-		- IOC 容器 BeanFactory & ApplicationContext 概述
-		- 依赖注入的方式：属性注入；构造器注入
-			属性注入：
-				例：
-			****在xml文件中通过bean节点来配置bean
-	
-			  **<!--	id:bean的唯一标识
-						class:指定全类名    反射的方式创建对象: 
-										Class cls = Class.forName("com.atguigu.spring.beans.HelloWorld")
-										Object obj = cls.newInstance(); // 需要提供默认的构造器.
-						property: 通过set方法给指定的属性赋值  ->  **属性指的是 set方法名字包含的，成员变量指的是类中定义的成员变量
-				 -->
-				<bean id="helloWorld" class="com.atguigu.spring.beans.HelloWorld">
-					<property name="name" value="Jerry"></property>
-				</bean>
-				
-			****<!-- 目前的配置，SpringIOC容器在实例化的时候都会创建bean对象.  scope="singleton"-->
-				<bean id="helloWorld1" class="com.atguigu.spring.beans.HelloWorld" scope="singleton">
-					<property name="name1">
-						<value>Jerry</value>
-					</property>
-				</bean>
-				
-			****构造器注入：
-				例：
-			  **<!--配置Car,构造器注入
-					value:指定注入的值
-					index:指定构造器参数的位置(下标，从0开始)
-					type:指定构造器参数的类型.
-				 -->
-				<bean id="car1" class="com.atguigu.spring.beans.Car">
-					<constructor-arg value="BMW"></constructor-arg>
-					<constructor-arg value="500000" index="2" type="double"></constructor-arg>
-					<constructor-arg value="huachen" index="1"></constructor-arg>
-				</bean>
-			
-			****工厂模式
-			  **<!-- 静态工厂配置bean 
-					class: 静态工厂类
-					factroy-method: 静态工厂方法.
-				-->
-				<bean id="car" class="com.atguigu.spring.factory.StaticObjectFactory"
-					factory-method="getCar" >
-					<constructor-arg value="audi"></constructor-arg>	
-				 </bean>
-				 
-			  **<!-- 实例工厂配置bean
-					factroy-bean: 指定工厂bean
-					factroy-method:指定实例工厂方法.
-				  -->
-				 <bean id="iof" class="com.atguigu.spring.factory.InstanceObjectFactory"></bean>
-				 <bean id="car1" factory-bean="iof" factory-method="getCar">
-					<constructor-arg value="bmw"></constructor-arg>
-				 </bean>
-				 
-			  **<!-- FactoryBean的方式来配置bean
-					最终的对象是由getObject方法来进行返回的。
-				 -->
-				 <bean id="car2" class="com.atguigu.spring.factory.MyFactoryBean"></bean>
-					
-		- 注入属性值细节
-			例：
-		****特殊字符注入	
-			<bean id="book" class="com.atguigu.spring.beans.Book">
-				<property name="isbn" >
-					<value>1001</value>
-				</property>
-		  **<!-- 使用转义字符/实体的方式来完成特殊字符的注入 -->
-				<!-- <property name="bookName" value="&lt;&lt;java从入门到转行&gt;&gt;"></property> -->
-				<property name="bookName">
-		  **<!--  <![CDATA[......]]> 来完成特殊字符的注入 (必须使用<value>节点，因为 <![CDATA[......]]> 带有"<>"符号) -->
-					<value><![CDATA[<<java神功是如何练成的?>> ,.' " + - &lt;]]></value>
-				</property>
-			</bean>
-		
-		****引用：
-			<bean id="person" class="com.atguigu.spring.beans.Person">
-				<property name="name" value="莫小贝"></property>
-				<property name="age" value="12"></property>
-		  **<!-- 引用其他的bean  ref:指定要引用的bean -->
-				<property name="car" ref="car">
-					<!-- <ref bean="car"/> -->
-				</property>
-		  **<!-- <constructor-arg value=""  ref=""></constructor-arg> -->
-			</bean>
-			
-		****内部bean：
-			<bean id="personInnerBean" class="com.atguigu.spring.beans.Person">
-				<property name="name" value="白展堂"></property>
-				<property name="age" value="25"></property>
-				<property name="car">
-		  **<!-- 内部bean,只能在内部使用，外面用不了，所以不需要id属性 -->
-					<bean class="com.atguigu.spring.beans.Car" >
-						<property name="brand" value="DasAUTO"></property>
-						<property name="crop" value="yiqi"></property>
-						<property name="price" value="300000"></property>
-						<property name="maxSpeed" value="280"></property>
-					</bean>
-				</property>
-			</bean>
-		****集合注入	
-			<bean id="personList" class="com.atguigu.spring.beans.PersonList">
-				<property name="name" value="佟湘玉"></property>
-				<property name="age" value="25"></property>
-				<property name="cars" >
-					<list>
-						<ref bean="car"/>
-						<ref bean="car1"/>
-						<ref bean="car2"/>
-		  **<!-- <bean></bean>  还可以使用内部bean-->
-					</list>
-					<!-- 
-						<map>
-							<entry key="AA" value-ref="car"></entry>	
-							<entry key="BB" value-ref="car1"></entry>
-							<entry key="CC" value-ref="car2"></entry>
-						</map>
-						<set></set>
-						<array></array>  -> 数组尽量使用 <list>注入
-					 -->
-				</property>
-			</bean>
-		****p命名空间
-		  **<!-- p命名空间 -->
-			<bean id="personP" class="com.atguigu.spring.beans.Person" 
-				p:age="30" p:name="李大嘴" p:car-ref="car" >
-				<!-- <property name=""></property>
-				<constructor-arg></constructor-arg> -->
-			</bean>
-			
-		- 自动装配
-		****通过xml自动装配
-		  **<!-- 
-			    autowire:
-					byName: 通过bean的id值与要进行注入的属性名进行匹配
-					byType: 通过bean的class值与要进行注入的属性的类型进行匹配.
-			 -->
-			<bean id="person" class="com.atguigu.spring.autowire.Person" autowire="byType">
-				<property name="name" value="Tom"></property>
-			</bean>
-			
-		- bean 之间的关系：继承；依赖
-		****bean之间的继承
-		  **<!-- 
-				parent: 指定父bean,实现继承关系.
-				abstract="true":指定为抽象bean,指定为抽象bean以后不能再实例化对象.
-			 -->
-			<bean id="address" class="com.atguigu.spring.autowire.Address" abstract="true">
-				<property name="city" value="BeiJing"></property>
-				<property name="street" value="HuiLongGuan"></property>
-			</bean>
-			<bean id="address1"  parent="address">
-				<property name="street" value="WuDaoKou"></property>    -> ** 重写的属性会覆盖掉继承来的属性值
-			</bean>
-		
-		- bean 的作用域：singleton；prototype；WEB 环境作用域
-		****bean的作用域
-		  **<!-- 
-				scope:配置bean的作用域
-					singleton: 单例. 整个IOC容器中只有一个bean的实例.而且该bean的实例会在IOC容器实例化的时候创建.
-					prototype: 原型的. 在整个IOC容器中有多个bean的实例. 每次通过getBean方法获取bean的实例时,IOC
-									   容器都会创建一个新的对象返回.							   
-					request:一次请求之间.
-					session:一次会话之间.
-			-->
-		- 使用外部属性
-		****引入context命名空间 -->  xmlns:context="http://www.springframework.org/schema/context"
-			<context:property-placeholder location="classpath:db.properties"/>
-		****配置工具bean
-			<bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
-				<property name="location" value="classpath:db.properties"></property>
-			</bean>
-		****获取配置的文件中的属性
-			<bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource">
-				<property name="driverClass" value="${jdbc.driver}"></property>
-				<property name="jdbcUrl" value="${jdbc.url}"></property>
-				<property name="user" value="${jdbc.username}"></property>
-				<property name="password" value="${jdbc.password}"></property>
-			</bean>
-		- IOC 容器中 Bean 的生命周期
-		****生命周期:
-		  **<!-- 
-				1.调用构造器创建对象 
-				2.给对象的属性赋值
-				3.调用初始化方法.初始化方法是通过init-method来指定的.
-				4.使用对象
-				5.调用销毁方法.销毁方法是通过destroy-method来指定的.
-			-->
-			<bean id="car" class="com.atguigu.spring.lifecycle.Car" 
-				init-method="chushihua" destroy-method="destroy">
-				<property name="brand" value="Ford"></property>
-				<property name="price" value="250000"></property>
-			</bean>
-		
-	(3)AOP
-		****动态代理
-		  **动态代理实现的方式：
-		    jdk动态代理    基于接口实现代理
-			cglib动态代理    基于子类的方式实现代理
-			javassist动态代理    基于子类的方式实现代理
-	
-		  **jdk的动态代理实现：
-		    //获取代理对象
-			public ArithmeticCalculator getLoggingProxy(){
-				//定义代理对象
-				ArithmeticCalculator proxy ;
-				
-				/**
-				 * loader:  ClassLoader 类加载器
-				 * interfaces:  目标类的所有接口，目的是获取接口中的方法
-				 * h: InvocationHandler
-				 */
-				ClassLoader loader = target.getClass().getClassLoader();
-				Class[] interfaces = target.getClass().getInterfaces();
-				InvocationHandler h = new InvocationHandler() {
-					/**
-					 * proxy:代理对象   在invoke方法中一般不会用
-					 * method:正在调用的方法
-					 * args:调用方法传入的参数
-					 */
-					@Override
-					public Object invoke(Object proxy, Method method, Object[] args)
-							throws Throwable {
-						String methodName = method.getName();
-						//加日志
-						System.out.println("ATGUIGU===>The method "+methodName+" begins with "+ Arrays.asList(args));
-						//执行目标方法
-						Object result = method.invoke(target, args);
-						//加日志
-						System.out.println("ATGUIGU===>The method "+methodName+" ends with " + result );
-						return result;
-					}
-				};
-				proxy = (ArithmeticCalculator)Proxy.newProxyInstance(loader, interfaces, h);
-				return proxy ;
-			}
-		****SpringAOP
-		  **切面
-		    将横切关注点模块化后形成切面。
-		  **通知
-			前置通知
-			/**
-			 * 前置通知: 在方法执行之前执行.
-			 * JoinPoint:连接点对象  包含了连接点相关的信息:方法名   方法的参数等....
-			 */
-			//@Before("execution(public int com.atguigu.spring.aspectJ.ArithmeticCalculator.add(int,int))")
-			//@Before("execution(public int com.atguigu.spring.aspectJ.ArithmeticCalculator.*(int,int))")
-			//任意修饰符任意返回值  com.atguigu.spring.aspectJ包下的任意类的任意方法   任意参数
-			//@Before("execution(* com.atguigu.spring.aspectJ.*.*(..))")
-			@Before("suibian()")
-			public void beforeMethod(JoinPoint joinPoint){
-				//获取方法名:
-				String methodName = joinPoint.getSignature().getName();
-				//获取参数
-				Object [] args = joinPoint.getArgs();
-				System.out.println("The method "+methodName+" begins with "+ Arrays.asList(args));
-			}
-			
-			后置通知
-			/**
-			 * 后置通知: 在方法执行后执行，不管方法有没有抛出异常.
-			 * 后置通知访问不到方法的返回值
-			 */
-			@After("execution(* com.atguigu.spring.aspectJ.*.*(..))")
-			public void afterMethod(JoinPoint joinPoint){
-				//获取方法名:
-				String methodName = joinPoint.getSignature().getName();
-				System.out.println("The methods "+methodName+" ends .");
-			}
-			
-			返回通知
-			/**
-			 * 返回通知: 在方法正常执行，返回结果以后执行的.
-			 * 返回通知就能访问到方法的返回值.
-			 */
-			//@AfterReturning(value="execution(* com.atguigu.spring.aspectJ.*.*(..))",returning="result")
-			public void afterReturningMethod(JoinPoint joinPoint,Object result){
-				//获取方法名:
-				String methodName = joinPoint.getSignature().getName();
-				System.out.println("The method "+methodName+" ends with " + result );
-			}
-			
-			异常通知
-			/**
-			 * 异常通知:方法执行过程中抛出异常以后执行的.
-			 * 可以指定抛出特定的异常再执行异常通知. 在形参的位置执行异常的类型即可.
-			 */
-			//@AfterThrowing(value="execution(* com.atguigu.spring.aspectJ.*.*(..))",throwing="ex")
-			public void afterThrowingMethod(JoinPoint joinPoint,ArithmeticException ex ){
-				//获取方法名:
-				String methodName = joinPoint.getSignature().getName();
-				System.out.println("The method "+methodName+" occurs exception:" + ex );
-			}
-			
-			环绕通知
-			/**
-			 * 环绕通知:类似于动态代理的整个过程.
-			 */
-			//@Around("execution(* com.atguigu.spring.aspectJ.*.*(..))")
-			public Object  aroundMethod(ProceedingJoinPoint pjp){
-				String methodName = pjp.getSignature().getName();
-				Object [] args = pjp.getArgs();
-				
-				try {
-					System.out.println("The method "+methodName+" begins with " +Arrays.asList(args));
-					//执行目标方法
-					Object result = pjp.proceed();
-					System.out.println("The method "+methodName+" ends with " +result );
-					return result ;
-				} catch (Throwable e) {
-					e.printStackTrace();
-					System.out.println("The method "+methodName+"occurs exception :" + e );
-				}finally{
-					System.out.println("The method " + methodName+"ends .");
-				}
-				return null ;
-			}
-			
-		  **基于注解方式配置AOP
-			<!-- 基于注解开发开启aop自动代理-->
-			<aop:aspectj-autoproxy/>
-			
-		  **基于xml方式配置AOP
-		    <!-- 配置切面 -->
-			<bean id="loggingAspect" class="com.atguigu.spring.aspect_xml.LoggingAspect"></bean>
-			<bean id="validatorAspect" class="com.atguigu.spring.aspect_xml.ValidatorAspect"></bean>
-			<!-- 配置目标bean -->
-			<bean id="arithmeticCalculatorImpl" class="com.atguigu.spring.aspect_xml.ArithmeticCalculatorImpl"></bean>
-			<!-- 配置aop -->
-			<aop:config>
-				<!-- 配置切入点表达式 -->
-				<aop:pointcut expression="execution(* com.atguigu.spring.aspect_xml.*.*(..))"
-							 id="myPointCut"/>
-				<!-- 配置切面及通知 -->
-				<aop:aspect ref="loggingAspect"  order="1">
-					<aop:before method="beforeMethod" pointcut-ref="myPointCut"/>
-					<aop:after method="afterMethod" pointcut-ref="myPointCut"/>
-					<aop:after-returning method="afterReturningMethod" pointcut-ref="myPointCut" returning="result"/>
-					<aop:after-throwing method="afterThrowingMethod" pointcut-ref="myPointCut" throwing="ex"/>
-				</aop:aspect>
-				<!--<aop:aspect order="2"></aop:aspect> -->
-			</aop:config>
-		
-		****切面的优先级
-			如果是基于注解的方式，可以使用@Order(值)来制定切面的优先级，值越小优先级越高；
-			如果是基于xml的方式，可以使用order属性来制定切面的优先级。
-		****重用切入点表达式
-			/**
-			 * 重用切入点表达式
-			 */
-			@Pointcut("execution(* com.atguigu.spring.aspectJ.*.*(..))")
-			public void suibian(){}
-			
-			@Before("suibian()")
-			public void beforeMethod(JoinPoint joinPoint)
+    (2)配置Bean
+        - 配置形式：基于 XML 文件的方式；
+        ****xml文件头：
+                <?xml version="1.0" encoding="UTF-8"?>
+                <beans xmlns="http://www.springframework.org/schema/beans"
+                    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                    xmlns:p="http://www.springframework.org/schema/p"           -> **** p命名空间
+                    xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+                    
+                </beans>
+        ****基于注解的方式：
+          **常用的注解：
+            @Component：标识一个组件
+            @Repository：标识为一个持久层的组件
+            @Service：标识为一个业务层的组件
+            @Controller：标识为一个表现层的组件
+            @AutoWired：自动装配
+            @Qualifier：具体的指定要装配的bean的id值
+          **开启注解配置：
+            <context:component-scan base-package="基包"></context:component-scan>
+            use-default-filters="true/false":是否使用默认的过滤
+            
+            <context:include-filter type="annotation/assignable" expression="注解的全类名/组件类的全类名">
+            <context:include-filter>需要配合 use-default-filters="false" 来使用
+            <context:exclude-filter type="annotation/assignable" expression="注解的全类名/组件类的全类名"/>
+          **@AutoWired
+            a.优先匹配兼容的类型来进行注入。如果有多个兼容的类型匹配，则再尝试使用被注入的属性名跟ioc容器中
+              bean的id值进行匹配。
+            b.required：默认情况下，被@AutoWired 标注的属性必须要被装配。可以使用 required="false" 来改变默
+              认的行为。
+            c.可以使用 @Qualifier来具体指定要装配的bean的id值。
+                        
+        - Bean 的配置方式：通过全类名（反射）、通过工厂方法（静态工厂方法 & 实例工厂方法）、FactoryBean
+        - IOC 容器 BeanFactory & ApplicationContext 概述
+        - 依赖注入的方式：属性注入；构造器注入
+            属性注入：
+                例：
+            ****在xml文件中通过bean节点来配置bean
+    
+              **<!--    id:bean的唯一标识
+                        class:指定全类名    反射的方式创建对象: 
+                                        Class cls = Class.forName("com.atguigu.spring.beans.HelloWorld")
+                                        Object obj = cls.newInstance(); // 需要提供默认的构造器.
+                        property: 通过set方法给指定的属性赋值  ->  **属性指的是 set方法名字包含的，成员变量指的是类中定义的成员变量
+                 -->
+                <bean id="helloWorld" class="com.atguigu.spring.beans.HelloWorld">
+                    <property name="name" value="Jerry"></property>
+                </bean>
+                
+            ****<!-- 目前的配置，SpringIOC容器在实例化的时候都会创建bean对象.  scope="singleton"-->
+                <bean id="helloWorld1" class="com.atguigu.spring.beans.HelloWorld" scope="singleton">
+                    <property name="name1">
+                        <value>Jerry</value>
+                    </property>
+                </bean>
+                
+            ****构造器注入：
+                例：
+              **<!--配置Car,构造器注入
+                    value:指定注入的值
+                    index:指定构造器参数的位置(下标，从0开始)
+                    type:指定构造器参数的类型.
+                 -->
+                <bean id="car1" class="com.atguigu.spring.beans.Car">
+                    <constructor-arg value="BMW"></constructor-arg>
+                    <constructor-arg value="500000" index="2" type="double"></constructor-arg>
+                    <constructor-arg value="huachen" index="1"></constructor-arg>
+                </bean>
+            
+            ****工厂模式
+              **<!-- 静态工厂配置bean 
+                    class: 静态工厂类
+                    factroy-method: 静态工厂方法.
+                -->
+                <bean id="car" class="com.atguigu.spring.factory.StaticObjectFactory"
+                    factory-method="getCar" >
+                    <constructor-arg value="audi"></constructor-arg>    
+                 </bean>
+                 
+              **<!-- 实例工厂配置bean
+                    factroy-bean: 指定工厂bean
+                    factroy-method:指定实例工厂方法.
+                  -->
+                 <bean id="iof" class="com.atguigu.spring.factory.InstanceObjectFactory"></bean>
+                 <bean id="car1" factory-bean="iof" factory-method="getCar">
+                    <constructor-arg value="bmw"></constructor-arg>
+                 </bean>
+                 
+              **<!-- FactoryBean的方式来配置bean
+                    最终的对象是由getObject方法来进行返回的。
+                 -->
+                 <bean id="car2" class="com.atguigu.spring.factory.MyFactoryBean"></bean>
+                    
+        - 注入属性值细节
+            例：
+        ****特殊字符注入  
+            <bean id="book" class="com.atguigu.spring.beans.Book">
+                <property name="isbn" >
+                    <value>1001</value>
+                </property>
+          **<!-- 使用转义字符/实体的方式来完成特殊字符的注入 -->
+                <!-- <property name="bookName" value="&lt;&lt;java从入门到转行&gt;&gt;"></property> -->
+                <property name="bookName">
+          **<!--  <![CDATA[......]]> 来完成特殊字符的注入 (必须使用<value>节点，因为 <![CDATA[......]]> 带有"<>"符号) -->
+                    <value><![CDATA[<<java神功是如何练成的?>> ,.' " + - &lt;]]></value>
+                </property>
+            </bean>
+        
+        ****引用：
+            <bean id="person" class="com.atguigu.spring.beans.Person">
+                <property name="name" value="莫小贝"></property>
+                <property name="age" value="12"></property>
+          **<!-- 引用其他的bean  ref:指定要引用的bean -->
+                <property name="car" ref="car">
+                    <!-- <ref bean="car"/> -->
+                </property>
+          **<!-- <constructor-arg value=""  ref=""></constructor-arg> -->
+            </bean>
+            
+        ****内部bean：
+            <bean id="personInnerBean" class="com.atguigu.spring.beans.Person">
+                <property name="name" value="白展堂"></property>
+                <property name="age" value="25"></property>
+                <property name="car">
+          **<!-- 内部bean,只能在内部使用，外面用不了，所以不需要id属性 -->
+                    <bean class="com.atguigu.spring.beans.Car" >
+                        <property name="brand" value="DasAUTO"></property>
+                        <property name="crop" value="yiqi"></property>
+                        <property name="price" value="300000"></property>
+                        <property name="maxSpeed" value="280"></property>
+                    </bean>
+                </property>
+            </bean>
+        ****集合注入    
+            <bean id="personList" class="com.atguigu.spring.beans.PersonList">
+                <property name="name" value="佟湘玉"></property>
+                <property name="age" value="25"></property>
+                <property name="cars" >
+                    <list>
+                        <ref bean="car"/>
+                        <ref bean="car1"/>
+                        <ref bean="car2"/>
+          **<!-- <bean></bean>  还可以使用内部bean-->
+                    </list>
+                    <!-- 
+                        <map>
+                            <entry key="AA" value-ref="car"></entry>    
+                            <entry key="BB" value-ref="car1"></entry>
+                            <entry key="CC" value-ref="car2"></entry>
+                        </map>
+                        <set></set>
+                        <array></array>  -> 数组尽量使用 <list>注入
+                     -->
+                </property>
+            </bean>
+        ****p命名空间
+          **<!-- p命名空间 -->
+            <bean id="personP" class="com.atguigu.spring.beans.Person" 
+                p:age="30" p:name="李大嘴" p:car-ref="car" >
+                <!-- <property name=""></property>
+                <constructor-arg></constructor-arg> -->
+            </bean>
+            
+        - 自动装配
+        ****通过xml自动装配
+          **<!-- 
+                autowire:
+                    byName: 通过bean的id值与要进行注入的属性名进行匹配
+                    byType: 通过bean的class值与要进行注入的属性的类型进行匹配.
+             -->
+            <bean id="person" class="com.atguigu.spring.autowire.Person" autowire="byType">
+                <property name="name" value="Tom"></property>
+            </bean>
+            
+        - bean 之间的关系：继承；依赖
+        ****bean之间的继承
+          **<!-- 
+                parent: 指定父bean,实现继承关系.
+                abstract="true":指定为抽象bean,指定为抽象bean以后不能再实例化对象.
+             -->
+            <bean id="address" class="com.atguigu.spring.autowire.Address" abstract="true">
+                <property name="city" value="BeiJing"></property>
+                <property name="street" value="HuiLongGuan"></property>
+            </bean>
+            <bean id="address1"  parent="address">
+                <property name="street" value="WuDaoKou"></property>    -> ** 重写的属性会覆盖掉继承来的属性值
+            </bean>
+        
+        - bean 的作用域：singleton；prototype；WEB 环境作用域
+        ****bean的作用域
+          **<!-- 
+                scope:配置bean的作用域
+                    singleton: 单例. 整个IOC容器中只有一个bean的实例.而且该bean的实例会在IOC容器实例化的时候创建.
+                    prototype: 原型的. 在整个IOC容器中有多个bean的实例. 每次通过getBean方法获取bean的实例时,IOC
+                                       容器都会创建一个新的对象返回.                             
+                    request:一次请求之间.
+                    session:一次会话之间.
+            -->
+        - 使用外部属性
+        ****引入context命名空间 -->  xmlns:context="http://www.springframework.org/schema/context"
+            <context:property-placeholder location="classpath:db.properties"/>
+        ****配置工具bean
+            <bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+                <property name="location" value="classpath:db.properties"></property>
+            </bean>
+        ****获取配置的文件中的属性
+            <bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource">
+                <property name="driverClass" value="${jdbc.driver}"></property>
+                <property name="jdbcUrl" value="${jdbc.url}"></property>
+                <property name="user" value="${jdbc.username}"></property>
+                <property name="password" value="${jdbc.password}"></property>
+            </bean>
+        - IOC 容器中 Bean 的生命周期
+        ****生命周期:
+          **<!-- 
+                1.调用构造器创建对象 
+                2.给对象的属性赋值
+                3.调用初始化方法.初始化方法是通过init-method来指定的.
+                4.使用对象
+                5.调用销毁方法.销毁方法是通过destroy-method来指定的.
+            -->
+            <bean id="car" class="com.atguigu.spring.lifecycle.Car" 
+                init-method="chushihua" destroy-method="destroy">
+                <property name="brand" value="Ford"></property>
+                <property name="price" value="250000"></property>
+            </bean>
+        
+    (3)AOP
+        ****动态代理
+          **动态代理实现的方式：
+            jdk动态代理    基于接口实现代理
+            cglib动态代理    基于子类的方式实现代理
+            javassist动态代理    基于子类的方式实现代理
+    
+          **jdk的动态代理实现：
+            //获取代理对象
+            public ArithmeticCalculator getLoggingProxy(){
+                //定义代理对象
+                ArithmeticCalculator proxy ;
+                
+                /**
+                 * loader:  ClassLoader 类加载器
+                 * interfaces:  目标类的所有接口，目的是获取接口中的方法
+                 * h: InvocationHandler
+                 */
+                ClassLoader loader = target.getClass().getClassLoader();
+                Class[] interfaces = target.getClass().getInterfaces();
+                InvocationHandler h = new InvocationHandler() {
+                    /**
+                     * proxy:代理对象   在invoke方法中一般不会用
+                     * method:正在调用的方法
+                     * args:调用方法传入的参数
+                     */
+                    @Override
+                    public Object invoke(Object proxy, Method method, Object[] args)
+                            throws Throwable {
+                        String methodName = method.getName();
+                        //加日志
+                        System.out.println("ATGUIGU===>The method "+methodName+" begins with "+ Arrays.asList(args));
+                        //执行目标方法
+                        Object result = method.invoke(target, args);
+                        //加日志
+                        System.out.println("ATGUIGU===>The method "+methodName+" ends with " + result );
+                        return result;
+                    }
+                };
+                proxy = (ArithmeticCalculator)Proxy.newProxyInstance(loader, interfaces, h);
+                return proxy ;
+            }
+        ****SpringAOP
+          **切面
+            将横切关注点模块化后形成切面。
+          **通知
+            前置通知
+            /**
+             * 前置通知: 在方法执行之前执行.
+             * JoinPoint:连接点对象  包含了连接点相关的信息:方法名   方法的参数等....
+             */
+            //@Before("execution(public int com.atguigu.spring.aspectJ.ArithmeticCalculator.add(int,int))")
+            //@Before("execution(public int com.atguigu.spring.aspectJ.ArithmeticCalculator.*(int,int))")
+            //任意修饰符任意返回值  com.atguigu.spring.aspectJ包下的任意类的任意方法   任意参数
+            //@Before("execution(* com.atguigu.spring.aspectJ.*.*(..))")
+            @Before("suibian()")
+            public void beforeMethod(JoinPoint joinPoint){
+                //获取方法名:
+                String methodName = joinPoint.getSignature().getName();
+                //获取参数
+                Object [] args = joinPoint.getArgs();
+                System.out.println("The method "+methodName+" begins with "+ Arrays.asList(args));
+            }
+            
+            后置通知
+            /**
+             * 后置通知: 在方法执行后执行，不管方法有没有抛出异常.
+             * 后置通知访问不到方法的返回值
+             */
+            @After("execution(* com.atguigu.spring.aspectJ.*.*(..))")
+            public void afterMethod(JoinPoint joinPoint){
+                //获取方法名:
+                String methodName = joinPoint.getSignature().getName();
+                System.out.println("The methods "+methodName+" ends .");
+            }
+            
+            返回通知
+            /**
+             * 返回通知: 在方法正常执行，返回结果以后执行的.
+             * 返回通知就能访问到方法的返回值.
+             */
+            //@AfterReturning(value="execution(* com.atguigu.spring.aspectJ.*.*(..))",returning="result")
+            public void afterReturningMethod(JoinPoint joinPoint,Object result){
+                //获取方法名:
+                String methodName = joinPoint.getSignature().getName();
+                System.out.println("The method "+methodName+" ends with " + result );
+            }
+            
+            异常通知
+            /**
+             * 异常通知:方法执行过程中抛出异常以后执行的.
+             * 可以指定抛出特定的异常再执行异常通知. 在形参的位置执行异常的类型即可.
+             */
+            //@AfterThrowing(value="execution(* com.atguigu.spring.aspectJ.*.*(..))",throwing="ex")
+            public void afterThrowingMethod(JoinPoint joinPoint,ArithmeticException ex ){
+                //获取方法名:
+                String methodName = joinPoint.getSignature().getName();
+                System.out.println("The method "+methodName+" occurs exception:" + ex );
+            }
+            
+            环绕通知
+            /**
+             * 环绕通知:类似于动态代理的整个过程.
+             */
+            //@Around("execution(* com.atguigu.spring.aspectJ.*.*(..))")
+            public Object  aroundMethod(ProceedingJoinPoint pjp){
+                String methodName = pjp.getSignature().getName();
+                Object [] args = pjp.getArgs();
+                
+                try {
+                    System.out.println("The method "+methodName+" begins with " +Arrays.asList(args));
+                    //执行目标方法
+                    Object result = pjp.proceed();
+                    System.out.println("The method "+methodName+" ends with " +result );
+                    return result ;
+                } catch (Throwable e) {
+                    e.printStackTrace();
+                    System.out.println("The method "+methodName+"occurs exception :" + e );
+                }finally{
+                    System.out.println("The method " + methodName+"ends .");
+                }
+                return null ;
+            }
+            
+          **基于注解方式配置AOP
+            <!-- 基于注解开发开启aop自动代理-->
+            <aop:aspectj-autoproxy/>
+            
+          **基于xml方式配置AOP
+            <!-- 配置切面 -->
+            <bean id="loggingAspect" class="com.atguigu.spring.aspect_xml.LoggingAspect"></bean>
+            <bean id="validatorAspect" class="com.atguigu.spring.aspect_xml.ValidatorAspect"></bean>
+            <!-- 配置目标bean -->
+            <bean id="arithmeticCalculatorImpl" class="com.atguigu.spring.aspect_xml.ArithmeticCalculatorImpl"></bean>
+            <!-- 配置aop -->
+            <aop:config>
+                <!-- 配置切入点表达式 -->
+                <aop:pointcut expression="execution(* com.atguigu.spring.aspect_xml.*.*(..))"
+                             id="myPointCut"/>
+                <!-- 配置切面及通知 -->
+                <aop:aspect ref="loggingAspect"  order="1">
+                    <aop:before method="beforeMethod" pointcut-ref="myPointCut"/>
+                    <aop:after method="afterMethod" pointcut-ref="myPointCut"/>
+                    <aop:after-returning method="afterReturningMethod" pointcut-ref="myPointCut" returning="result"/>
+                    <aop:after-throwing method="afterThrowingMethod" pointcut-ref="myPointCut" throwing="ex"/>
+                </aop:aspect>
+                <!--<aop:aspect order="2"></aop:aspect> -->
+            </aop:config>
+        
+        ****切面的优先级
+            如果是基于注解的方式，可以使用@Order(值)来制定切面的优先级，值越小优先级越高；
+            如果是基于xml的方式，可以使用order属性来制定切面的优先级。
+        ****重用切入点表达式
+            /**
+             * 重用切入点表达式
+             */
+            @Pointcut("execution(* com.atguigu.spring.aspectJ.*.*(..))")
+            public void suibian(){}
+            
+            @Before("suibian()")
+            public void beforeMethod(JoinPoint joinPoint)
 
-			@Before("com.atguigu.spring.aspectJ.LoggingAspect.suibian()")
-			public void beforeMethod(JoinPoint joinPoint)
-	
-	(4)Spring Jdbc
-		****jdbcTemplate
-			Spring将原始的jdbcAPI重新封装提供了jdbcTemplate的模板类。
-		  **常用方法：
-		    update：执行增删改
-			/**
-			 * update:insert update delete
-			 */
-			@Test
-			public void testUpdate(){
-				//hibernate  MyBatis
-				String sql  = "update tbl_employee set last_name = ? where id = ?";
-				//.预编译   设置参数   执行sql  封装结果
-				jdbcTemplate.update(sql, "Black",1001);
-			}
-			
-			batchUpdate：执行批量增删改
-			/**
-			 * batchUpdate: 批量增删改
-			 */
-			@Test
-			public void testBatchUpdate(){
-				String sql = "insert into tbl_employee (last_name,email,dept_id ) values(?,?,?)";
-				List<Object[]> batchArgs = new ArrayList<Object []>();
-				batchArgs.add(new Object[]{"AA","aa@sina.com",101});
-				batchArgs.add(new Object[]{"BB","bb@sina.com",102});
-				batchArgs.add(new Object[]{"CC","cc@sina.com",103});
-				batchArgs.add(new Object[]{"DD","dd@sina.com",104});
-				jdbcTemplate.batchUpdate(sql, batchArgs);
-			}
-			
-			queryForObject：查询单行返回单个对象/查询返回单个值
-			/**
-			 * queryForObject(): 查询单行返回单个对象
-			 */
-			@Test
-			public void testQueryForObject(){
-				String sql = "select id,last_name lastName ,email,dept_id deptId from tbl_employee where id = ? ";
-				RowMapper<Employee> rowMapper   = 
-						new BeanPropertyRowMapper<Employee>(Employee.class);
-				//rowMapper:将数据库表中一行数据中每个列的值映射到指定的javaBean中对应的属性上.
-				//rowMapper解决了下划线到驼峰命名.  last_name  lastName
-				
-				Employee e = jdbcTemplate.queryForObject(sql, rowMapper, 1001);
-				System.out.println(e);
-			}
-			
-			/**
-			 * queryForObejct():查询返回单个值
-			 * 统计查询.
-			 */
-			@Test
-			public void testQueryForObject1(){
-				String sql = "select count(id) from tbl_employee";
-				
-				Integer result = jdbcTemplate.queryForObject(sql, Integer.class);
-				System.out.println(result );
-			}
-			
-			query：查询多行返回多个对象
-			/**
-			 * query():查询多行返回多个对象
-			 */
-			@Test
-			public void testQuery(){
-				String sql = "select id ,last_name lastName, email , dept_id deptId from tbl_employee";
-				RowMapper<Employee> rowMapper = 
-						new BeanPropertyRowMapper<>(Employee.class);
-				List<Employee> emps = jdbcTemplate.query(sql, rowMapper);
-				for (Employee employee : emps) {
-					System.out.println(employee);
-				}
-			}
-		****在Dao中使用jdbcTemplate：
-			在Dao类中定义jdbcTemplate，然后通过@Autowired将jdbcTemplate注入
-			
-			@Repository
-			public class EmployeeJdbcTemplateDao {
-				
-				@Autowired
-				private JdbcTemplate jdbcTemplate;
-				
-				public Employee getEmployeeById(Integer id ){
-					String sql = "select id,last_name lastName,email,dept_id deptId from tbl_employee where id = ?";
-					RowMapper<Employee> rowMapper = new BeanPropertyRowMapper<>(Employee.class);
-					Employee employee = jdbcTemplate.queryForObject(sql, rowMapper, id);
-					return employee ;
-					
-				}
-			}
-	(5)Spring事务管理
-		****基于注解
-		  **配置事务管理器以及开启事务注解
-		    <!-- 配置事务管理器 -->
-			<bean id = "dataSourceTransactionManager" 
-					class = "org.springframework.jdbc.datasource.DataSourceTransactionManager">
-				<property name="dataSource" ref="dataSource"></property>
-			</bean>
-			<!-- 基于注解使用事务,需要开启事务注解. -->
-			<tx:annotation-driven transaction-manager="dataSourceTransactionManager"/>
-			
-			tx:annotation-driven中transaction-manager的默认值是transactionManager，
-			如果当前事务管理器的id值就是transactionManager，那么transaction-manager的配置可以省略。
-			如果当前事务管理器的id值不是transactionManager，那么就必须在transaction-manager中指定当前的事务管理器的id值。
-			
-		  **@Transactional
-		    该注解可以加到类上，也可以加到方法上。加到类上的对当前类中所有方法都起作用。
-			如果类与方法上都加了该注解，则方法上的优先于类上的。
-		  
-		  **事务的属性
-		    /**
-			 * 事务的属性:
-			 * 	propagation:事务的传播行为.
-			 *     REQUIRED:使用调用者的事务
-			 *     REQUIRES_NEW:将调用者的事务挂起,使用自己的新事务.
-			 *  
-			 *  isolation:事务的隔离级别,最常用的就是READ_COMMITTED
-			 *  readOnly:指定事务是否为只读. 如果是只读事务,代表这个事务只读取数据库的数据.而不进行修改操作 .
-			 *  		 若一个事务真的是只读取数据,就有必须要设置readOnly=true,可以帮助数据库引擎进行优化
-			 *  
-			 *  rollbackFor
-			 *  rollbackForClassName
-			 *  noRollbackFor
-			 *  noRollbackForClassName	
-			 *  
-			 *  timeout:指定强制回滚前事务可以占用的时间。 为了避免一个事务占用过长的时间. 
-			 */
-			 
-		****基于xml
-			<!-- 配置事务管理器 -->
-			<bean id = "transactionManager" 
-					class = "org.springframework.jdbc.datasource.DataSourceTransactionManager">
-				<property name="dataSource" ref="dataSource"></property>
-			</bean>
-			
-			<!-- 基于注解使用事务,需要开启事务注解. 
-			<tx:annotation-driven transaction-manager="dataSourceTransactionManager"/>
-			-->
-			
-			<!-- 配置事务属性 -->
-			<tx:advice id="txAdvice" transaction-manager="transactionManager">
-				<tx:attributes>
-					<tx:method name="buyBook" propagation="REQUIRES_NEW" isolation="READ_COMMITTED" read-only="false" timeout="3"/>
-					<tx:method name="checkOut"/>
-					
-					<tx:method name="update*" propagation="REQUIRES_NEW"/>
-					<tx:method name="insert*" propagation="REQUIRED"/>
-					<tx:method name="delete*" propagation="REQUIRED"/>
-					<tx:method name="get*" read-only="true"/>
-				
-					<!-- *代表除了上述指定的方法之外的方法 -->
-					<tx:method name="*"/>
-					
-				</tx:attributes>
-			</tx:advice>
-			
-			<!-- 配置事务切入点, 以及事务切入点和事务属性关联起来-->
-			<aop:config>
-				<aop:pointcut expression="execution(* com.atguigu.spring.tx.service.*.*(..))" id="txPointCut"/>
-				<aop:advisor advice-ref="txAdvice" pointcut-ref="txPointCut"/>
-			</aop:config>
+            @Before("com.atguigu.spring.aspectJ.LoggingAspect.suibian()")
+            public void beforeMethod(JoinPoint joinPoint)
+    
+    (4)Spring Jdbc
+        ****jdbcTemplate
+            Spring将原始的jdbcAPI重新封装提供了jdbcTemplate的模板类。
+          **常用方法：
+            update：执行增删改
+            /**
+             * update:insert update delete
+             */
+            @Test
+            public void testUpdate(){
+                //hibernate  MyBatis
+                String sql  = "update tbl_employee set last_name = ? where id = ?";
+                //.预编译   设置参数   执行sql  封装结果
+                jdbcTemplate.update(sql, "Black",1001);
+            }
+            
+            batchUpdate：执行批量增删改
+            /**
+             * batchUpdate: 批量增删改
+             */
+            @Test
+            public void testBatchUpdate(){
+                String sql = "insert into tbl_employee (last_name,email,dept_id ) values(?,?,?)";
+                List<Object[]> batchArgs = new ArrayList<Object []>();
+                batchArgs.add(new Object[]{"AA","aa@sina.com",101});
+                batchArgs.add(new Object[]{"BB","bb@sina.com",102});
+                batchArgs.add(new Object[]{"CC","cc@sina.com",103});
+                batchArgs.add(new Object[]{"DD","dd@sina.com",104});
+                jdbcTemplate.batchUpdate(sql, batchArgs);
+            }
+            
+            queryForObject：查询单行返回单个对象/查询返回单个值
+            /**
+             * queryForObject(): 查询单行返回单个对象
+             */
+            @Test
+            public void testQueryForObject(){
+                String sql = "select id,last_name lastName ,email,dept_id deptId from tbl_employee where id = ? ";
+                RowMapper<Employee> rowMapper   = 
+                        new BeanPropertyRowMapper<Employee>(Employee.class);
+                //rowMapper:将数据库表中一行数据中每个列的值映射到指定的javaBean中对应的属性上.
+                //rowMapper解决了下划线到驼峰命名.  last_name  lastName
+                
+                Employee e = jdbcTemplate.queryForObject(sql, rowMapper, 1001);
+                System.out.println(e);
+            }
+            
+            /**
+             * queryForObejct():查询返回单个值
+             * 统计查询.
+             */
+            @Test
+            public void testQueryForObject1(){
+                String sql = "select count(id) from tbl_employee";
+                
+                Integer result = jdbcTemplate.queryForObject(sql, Integer.class);
+                System.out.println(result );
+            }
+            
+            query：查询多行返回多个对象
+            /**
+             * query():查询多行返回多个对象
+             */
+            @Test
+            public void testQuery(){
+                String sql = "select id ,last_name lastName, email , dept_id deptId from tbl_employee";
+                RowMapper<Employee> rowMapper = 
+                        new BeanPropertyRowMapper<>(Employee.class);
+                List<Employee> emps = jdbcTemplate.query(sql, rowMapper);
+                for (Employee employee : emps) {
+                    System.out.println(employee);
+                }
+            }
+        ****在Dao中使用jdbcTemplate：
+            在Dao类中定义jdbcTemplate，然后通过@Autowired将jdbcTemplate注入
+            
+            @Repository
+            public class EmployeeJdbcTemplateDao {
+                
+                @Autowired
+                private JdbcTemplate jdbcTemplate;
+                
+                public Employee getEmployeeById(Integer id ){
+                    String sql = "select id,last_name lastName,email,dept_id deptId from tbl_employee where id = ?";
+                    RowMapper<Employee> rowMapper = new BeanPropertyRowMapper<>(Employee.class);
+                    Employee employee = jdbcTemplate.queryForObject(sql, rowMapper, id);
+                    return employee ;
+                    
+                }
+            }
+    (5)Spring事务管理
+        ****基于注解
+          **配置事务管理器以及开启事务注解
+            <!-- 配置事务管理器 -->
+            <bean id = "dataSourceTransactionManager" 
+                    class = "org.springframework.jdbc.datasource.DataSourceTransactionManager">
+                <property name="dataSource" ref="dataSource"></property>
+            </bean>
+            <!-- 基于注解使用事务,需要开启事务注解. -->
+            <tx:annotation-driven transaction-manager="dataSourceTransactionManager"/>
+            
+            tx:annotation-driven中transaction-manager的默认值是transactionManager，
+            如果当前事务管理器的id值就是transactionManager，那么transaction-manager的配置可以省略。
+            如果当前事务管理器的id值不是transactionManager，那么就必须在transaction-manager中指定当前的事务管理器的id值。
+            
+          **@Transactional
+            该注解可以加到类上，也可以加到方法上。加到类上的对当前类中所有方法都起作用。
+            如果类与方法上都加了该注解，则方法上的优先于类上的。
+          
+          **事务的属性
+            /**
+             * 事务的属性:
+             *  propagation:事务的传播行为.
+             *     REQUIRED:使用调用者的事务
+             *     REQUIRES_NEW:将调用者的事务挂起,使用自己的新事务.
+             *  
+             *  isolation:事务的隔离级别,最常用的就是READ_COMMITTED
+             *  readOnly:指定事务是否为只读. 如果是只读事务,代表这个事务只读取数据库的数据.而不进行修改操作 .
+             *           若一个事务真的是只读取数据,就有必须要设置readOnly=true,可以帮助数据库引擎进行优化
+             *  
+             *  rollbackFor
+             *  rollbackForClassName
+             *  noRollbackFor
+             *  noRollbackForClassName  
+             *  
+             *  timeout:指定强制回滚前事务可以占用的时间。 为了避免一个事务占用过长的时间. 
+             */
+             
+        ****基于xml
+            <!-- 配置事务管理器 -->
+            <bean id = "transactionManager" 
+                    class = "org.springframework.jdbc.datasource.DataSourceTransactionManager">
+                <property name="dataSource" ref="dataSource"></property>
+            </bean>
+            
+            <!-- 基于注解使用事务,需要开启事务注解. 
+            <tx:annotation-driven transaction-manager="dataSourceTransactionManager"/>
+            -->
+            
+            <!-- 配置事务属性 -->
+            <tx:advice id="txAdvice" transaction-manager="transactionManager">
+                <tx:attributes>
+                    <tx:method name="buyBook" propagation="REQUIRES_NEW" isolation="READ_COMMITTED" read-only="false" timeout="3"/>
+                    <tx:method name="checkOut"/>
+                    
+                    <tx:method name="update*" propagation="REQUIRES_NEW"/>
+                    <tx:method name="insert*" propagation="REQUIRED"/>
+                    <tx:method name="delete*" propagation="REQUIRED"/>
+                    <tx:method name="get*" read-only="true"/>
+                
+                    <!-- *代表除了上述指定的方法之外的方法 -->
+                    <tx:method name="*"/>
+                    
+                </tx:attributes>
+            </tx:advice>
+            
+            <!-- 配置事务切入点, 以及事务切入点和事务属性关联起来-->
+            <aop:config>
+                <aop:pointcut expression="execution(* com.atguigu.spring.tx.service.*.*(..))" id="txPointCut"/>
+                <aop:advisor advice-ref="txAdvice" pointcut-ref="txPointCut"/>
+            </aop:config>
 三、SpringMVC
-	(1)概述：
-		Spring 为展现层提供的基于 MVC 设计理念的优秀的 Web 框架，是目前最主流的 MVC 框架之一。
-		Spring3.0 后全面超越 Struts2，成为最优秀的 MVC 框架。
-		Spring MVC 通过一套 MVC 注解，让 POJO 成为处理请求的控制器，而无须实现任何接口。
-		支持 REST 风格的 URL 请求。
-		采用了松散耦合可插拔组件结构，比其他 MVC 框架更具扩展性和灵活性。
-	(2)配置web.xml文件：SpringMVC的前端控制器(核心控制器)
-		DispatcherServlet是SPringMVC框架的前端控制器，简单理解就是请求到达后，由DispatcherServlet进行
-		请求的处理。就是找到当前请求映射(@RequestMapping)的处理方法。
-		执行处理方法。
-		<!-- SpringMVC的前端控制器 -->
-		<servlet>
-			<servlet-name>springDispatcherServlet</servlet-name>
-			<servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
-			
-			<!-- 配置初始化参数:初始化DispatcherServlet的时候需要用到的一些配置参数. 
-							需要指定SpringMVC的配置文件
-			-->		
-			<init-param>
-				<param-name>contextConfigLocation</param-name>
-				<param-value>classpath:springmvc.xml</param-value>
-			</init-param>
-			<!-- 配置当前的DispatcherServlet在tomcat容器启动的时候就被创建. -->
-			<load-on-startup>1</load-on-startup>
-		</servlet>
-		<servlet-mapping>
-			<servlet-name>springDispatcherServlet</servlet-name>
-			<!-- /login   /delete  /update   /user/delete .... 
-				此处可以有多种配置:
-					精确匹配   /login    /delete
-					后缀匹配   *.do   *.action  *.任何
-						  login.do  delete.do
-					通配符匹配:  /*
-				此处配置/的目的是  可以拦截所有的请求并且可以更好的支持REST风格的URL
-			-->
-			<url-pattern>/</url-pattern>
-		</servlet-mapping>
-		
-	(3)配置springmvc.xml
-		****开启注解扫描
-		<!-- 开启注解扫描 -->
-		<context:component-scan base-package="com.atguigu.springmvc"></context:component-scan>
-		
-		****视图解析器
-		<!-- 配置SpringMVC的视图解析器
-		 InternalResourceViewResolver的工作原理:
-		 	结合prefix  处理器方法的返回值    suffix  生成视图，通过转发去往视图.
-		 	eg:  prefix + 处理器方法的返回值  + suffix
-		 	     /WEB-INF/views/hello.jsp
-		 -->
-		<bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
-			<property name="prefix" value="/"></property>
-			<property name="suffix" value=".jsp"></property>
-		</bean>
-		
-	(4)处理器(控制器)
-		定义一个普通类，通过@Controller标识该类为处理器类。将来请求到达后，DispatcherServlet就会找
-		带有@Controller的类中的处理方法。
-	(5)处理方法(目标方法)
-		SpringMVC对处理方法的编写是松散的。没有强制性的要求必须要按照制定的格式来编写。
-		通过@RequestMapping注解来指定请求与处理方法的映射关系。
-	(6)@RequestMapping注解
-		****该注解可以加在类上或是方法上，如果类上以及方法上都加了该注解，则最终映射的URL就是
-			类上注解的value值+方法上注解的value值。
-			如果只有方法上加了该注解，则最终映射的URL就是方法上注解的value值。
-		****method
-			该注解支持映射请求方式：GET  POST  PUT  DELETE
-		****params
-			该注解支持映射请求参数。
-		****headers
-			该注解支持映射请求头信息。
-			
-	(7)@PathVaribale
-		该注解可以将URL中占位符的值映射到请求方法的入参中。REST风格的URL需要也来与该注解来实现。
-			/**
-			 * @PathVariable  映射请求URL占位符的值到处理方法的入参
-			 */
-			//浏览器: http://localhost:3306/springMVC01/testPathVariable/1/22
-			@RequestMapping("/testPathVariable/{id}/{age}")
-			public String testPathVariable(@PathVariable("id")Integer id , @PathVariable("age")Integer age ){
-				System.out.println(id + ":" + age);
-				return "success";
-			}
-			
-	(8)REST
-		****REST风格的URL		对比		原始风格的url
-						
-					|	REST			|	原始
-			--------+-------------------+------------------
-			添加	|	user(POST)		|	addUser
-			--------+-------------------+------------------
-			删除	|	user/1(DELETE)	|	deleteUser?id=1
-			--------+-------------------+------------------
-			修改	|	user/1(GET)		|	selectUser?id=1
-					|	user(PUT)		|	updateUser
-			--------+-------------------+------------------
-			查询	|	user/1(GET)		|	selectUser?id=1
-			
-		****使用REST风格的URL，需要配置@PathVariable注解将URL占位符的值映射到方法入参中
-		****REST风格的URL需要发送GET  POST  PUT  DELETE 请求，但是form表单只支持POST请求。
-			因此需要使用HiddenHttpMethodFilter来将POST请求转化成对应的PUT/DELETE请求
-			
-			<!-- 配置支持REST风格URL的过滤器 
-				   HiddenHttpMethodFilter工作机制:
-						是否要将post请求转换成put或者是delete请求，该过滤器会通过 _method从request中获取
-						请求参数.然后判断当前的请求方式是post，并且通过_method能获取到值.就会将_method
-						获取到的值包装成新的请求执行后续的处理逻辑
-						request.getParameter("_method");
-			  -->	
-			  <filter>
-				<filter-name>HiddenHttpMethodFilter</filter-name>
-				<filter-class>org.springframework.web.filter.HiddenHttpMethodFilter</filter-class>
-			  </filter>
-			  <filter-mapping>
-				<filter-name>HiddenHttpMethodFilter</filter-name>
-				<url-pattern>/*</url-pattern>
-			  </filter-mapping>
-			
-	(9)映射请求参数/请求头
-		****@RequestParam
-		  **将请求参数映射到方法的入参中。	语法@RequestParam("请求参数名")Object args;
-		  **如果请求参数名与方法的入参名字一样，可以不通过@RequestParam进行指定。
-		  **默认情况下@RequestParam注解标注的入参，必须要从请求参数中获取到对应的数据，如果获取
-		    不到对应的数据会报错。可以使用required=false来设置。
-		  **defaultValue可以设置默认值
-		****@RequestHeader
-			可以将请求头信息映射到目标方法的入参中。
-		****映射请求参数到POJO
-			可以直接将请求参数映射到指定的POJO的属性中，并且支持级联操作。
-		****原生的ServletAPI
-			SpringMVC支持在目标方法的入参中，直接定义原生的ServletAPI，将来SpringMVC调用目标方法的
-			时候就会将对应的对象传入，在目标方法中就可以使用定义好的原生的ServletAPI。
-	(10)处理模型数据
-		****ModelAndView
-			ModelAndView是用于方法的返回值，早目标方法中，通过new的方式创建出ModelAndView对象，然后通过
-			setViewName()来设置视图名称，addObject(k,v)方法来设置模型数据。
-			最终SpringMVC会将ModelAndView中的模型添加到request对象中，通过转发的方式去往ModelAndView中设置的视图。
-		****Model/Map
-			Model/Map是用于方法的入参。在目标方法中，可以定义Map或者是Model类型的入参，SpringMVC在
-			调用目标方法的时候，会传入BindingAwareModelMap对象，在目标方法中，可以调用相关的方法往
-			Map或者是Model中存放模型数据，最终SpringMVC调用完目标方法后，会解析成ModelAndView，将
-			Map或者是Model中的数据设置到ModelAndView中，将方法的返回值设置到ModelAndView中。
-			最终，会把ModelAndView中的模型数据添加到request对象中，通过转发的方式，去往ModelAndView
-			中设置的视图
-		****@SessionAttributes
-			该注解用在类上，作用是指定将哪些数据添加到session对象中。
-			value={}:通过指定key的方式，将对应的数据添加到session对象中。
-			types={}:通过指定数据的类型的方式，将对应的数据添加到session对象中。
-	(11)视图和视图解析器
-		****视图是由视图解析器解析得到的。视图解析器解析得到视图以后，视图再去处理模型数据。(将模型数据
-			设置到request对象中)，最终通过转发的方式响应到客户端。
-			eg：InternalResourceViewResolver  ====>  InternalResourceView  ====>  转发
-			eg：RedirectView  ====>  重定向
-		****工作流程
-		  **调用目标方法，得到ModelAndView对象。mav中包含视图名称以及模型数据
-		  **处理结果：先通过视图名称配合视图解析器得到真正的视图。
-		  **视图去处理模型数据，主要就是将模型数据设置到request对象中
-		  **获取转发器，转发到页面中
-		****重定向：RedirectView
-	(12)REST_CRUD
-		****查询操作
-		  **页面：emps请求
-		    /**
-			 * 查询所有的员工信息， 呈现到页面
-			 */
-			@RequestMapping(value="/emps",method=RequestMethod.GET)
-			public String  selectAllEmps(Map<String,Object> maps ){
-				Collection<Employee> emps = employeeDao.getAllEmps();
-				maps.put("emps", emps);
-				return "list";
-			}
-			
-		****添加操作
-		  **去往添加页面，添加页面的表单使用SpringMVC的表单标签，使用表单标签的目的是快速开发页面以及数据回显。
-		    /**
-			 * 去往添加页面
-			 */
-			@RequestMapping(value="/emp",method=RequestMethod.GET)
-			public String toAddPage(Map<String,Object> maps){
-				//查询部门信息
-				Collection<Department> departments = departmentDao.getDepartments();
-				maps.put("departments", departments);
-				//解决回显数据的问题
-				maps.put("employee", new Employee());
-				return "input";
-			}
-			
-		  **在添加页面中录入要添加的数据，提交表单
-		    
-		  **在服务器端的处理方法中，将表单提交的数据存入数据库，重定向到列表页面
-		    /**
-			 * 添加员工
-			 */
-			@RequestMapping(value="/emp",method=RequestMethod.POST)
-			public String addEmp(Employee employee){
-				System.out.println("employee:"+ employee);
-				employeeDao.save(employee);
-				//回到列表页面
-				return "redirect:/emps";
-			}
-		****删除操作
-		  **通过点击删除链接，发起删除请求。删除在REST中需要发送的是DELETE请求。因此需要借助于JavaScript技术
-		    发起POST请求，携带上<input type="hidden" name="_method" value="DELETE"/>隐藏域
-			<script type="text/javascript">
-				//编写js代码
-				$(function(){
-					//写到此处的语句代码当页面加载完毕后就会自动执行.
-					//alert("Hello Jquery....");
-					//
-					$(".delete").click(function(){
-						//获取id值为delete的  A标签的href的值
-						var href= $(this).attr("href");
-						//alert(href);
-						//给id为deleteForm的action属性赋href的值. 并且提交.
-						$("#deleteForm").attr("action",href).submit();
-						return false ; // 禁止a标签的默认行为.  a标签不在发送href的请求.
-					});
-				});
-			</script>
-			
-			<!-- 用于删除发送DELETE请求的表单 -->
-			<form id="deleteForm" action="" method="post">
-				<input type="hidden" name="_method" value="DELETE"/>
-			</form>
-		  **在服务器端处理方法中，将对应的数据删除，然后重定向到列表页面。
-		    /**
-			 * 根据id删除员工
-			 */
-			@RequestMapping(value="emp/{id}",method=RequestMethod.DELETE)
-			public String deleteEmp(@PathVariable("id")Integer id ){
-				employeeDao.deleteEmpById(id);
-				//删除完后重定向到列表页面.
-				return "redirect:/emps";
-			}
-			
-		****修改操作
-		  **根据id查询出要修改的数据，显示到页面中
-		    /**
-			 * 去往修改页面
-			 */
-			@RequestMapping(value="emp/{id}",method=RequestMethod.GET)
-			public String toUpdatePage(@PathVariable("id")Integer id,Map<String,Object> maps ){
-				//根据id查询要修改的数据
-				Employee employee = employeeDao.getEmpById(id);
-				maps.put("employee", employee);
-				//因为修改页面要用到所有的部门信息，因此要查询所有的部门信息，将查到的数据设置到request中
-				Collection<Department> departments = departmentDao.getDepartments();
-				maps.put("departments", departments);
-				return "input";
-			}
-		  **在修改的页面中，填入要修改的数据，然后提交表单
-		  **在服务器端处理方法中，将修改的数据在数据库进行修改
-		    /**
-			 * 修改操作
-			 */
-			@RequestMapping(value="/emp",method=RequestMethod.PUT)
-			public String updateEmp(Employee employee){
-				employeeDao.save(employee);
-				return "redirect:/emps";
-			}
-		  
-		****SpringMVC的表单标签
-		  **使用表单标签先要导入标签库
-		    <!-- 导入SpringMVC的表单标签 -->
-			<%@taglib prefix="form" uri="http://www.springframework.org/tags/form" %>
-		  **使用表单标签的目的：快速的开发页面；更加方便的回显数据
-		  **使用表单标签需要注意的问题
-		    SpringMVC的表单标签认为表单的数据必须要回显。默认情况下会使用"command"到request中查找
-			用于回显的数据。如果找不到对应的数据就会抛出异常。
-			可以使用modelAttribute属性来指定具体查找的key。
-			我们在操作的过程中，去往页面，进行数据回显的时候，一定要保证能让表单标签找到回显的数据。
-		****处理静态资源
-		  **在web.xml中将DispatcherServlet的url-pattern配置为/。就会拦截web容器的所有请求，
-		    包括静态资源的请求。
-		  **如何处理静态资源：>让SpringMVC处理带有后缀的请求，例如：*.do  *.action  等。
-							   此种方式不建议使用，因为优秀的REST风格的URL不希望带有任何后缀；、
-							  >在SpringMVC的配置文件中配置<mvc:default-servlet-handler/>
-		  **配置了<mvc:default-servlet-handler/>需要注意的问题：
-		    配置了<mvc:default-servlet-handler/>后，会导致@RequestMapping的映射不能用，因此需要配合
-			<mvc:annotation-driven/>一起使用
-		****实际开发中将<mvc:annotation-driven/>配上
-	(13)处理JSON
-		****HttpMessageConverter
-			用于加你个请求数据转换成java对象，或者将java对象转换成相应的数据。
-		****如何处理JSON：>导入jackson的jar包
-						  >在想要返回json数据的处理方法上，标注@ResponseBody注解即可。
-			/**
-			 * 测试JSON
-			 */
-			@ResponseBody
-			@RequestMapping("/testJSON")
-			public Collection<Employee> testJSON(){
-				Collection<Employee> emps = employeeDao.getAllEmps();
-				return emps ;
-			}
-	(14)国际化
-		****如何进行国际化
-		    SpringMVC默认情况下会装载一个AcceptHeaderLocaleResolver组件，该组件会从请求头信息中
-			获取Accept-language的本地化信息，解析得到当前的Locale。最终由ResourceBundleMessageSource
-			组件结合国际化稳健将对应的数据展示给页面。
-			如果要切换国际化，就要通过浏览器的语言设置来完成。
-		****通过超链接的方法切换国际化
-		  **配置SessionLocaleResolver
-		  **配置LocalChangeInterceptor
-		  **在超链接中发送locale=zh_CN/en_US的请求参数
-			
-	(15)文件的上传
-		****上传文件的组件  CommonsMultipartResolver，底层是用Commons FileUpload技术实现的。
-			<!-- 配置上传组件 -->
-			<bean id="multipartResolver" 
-				class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
-				<!-- 字符编码    需要配置成与jsp页面一致的编码-->	
-				<property name="defaultEncoding" value="utf-8"></property>
-				<!-- 最大的上传大小   以字节为单位-->
-				<property name="maxUploadSize" value="1024000"></property>
-			</bean>
-			
-		****具体上传的代码
-			/**
-			 * 上传操作
-			 * @throws IOException 
-			 */
-			@RequestMapping("/testFileUpload")
-			public String testFileUpload(@RequestParam("uploadFile")MultipartFile uploadFile ,
-								@RequestParam("desc")String desc ) throws IOException{
-				//表单:  上传域   + 普通文本域
-				System.out.println("uploadFile:"+ uploadFile);
-				System.out.println("in:" + uploadFile.getInputStream());
-				System.out.println("desc:"+ desc);
-				
-				uploadFile.transferTo(new File("e:"+File.separator+uploadFile.getOriginalFilename()));
-				return "success";
-			}
-			
-	(16)异常的处理
-		****ExceptionHandlerExceptionResolver
-		  **支持使用@ExceprionHandler注解来进行异常的处理
-		  **@ExceptionHandler({异常类.class})是有优先级问题的。优先选择匹配度最高的异常处理方法。
-		  **可以通过@ControllerAdvice来实现全局的异常处理
-		    当Handler中抛出异常后，如果在当前的Handler中找不到异常处理办法，就会到标注了@ControllerAdvice
-			的类中寻找异常处理方法。
-		  
-		****SimpleMappingExceptionResolver
-		  **将指定的异常映射到指定的页面
-		  **具体的配置：
-			<!-- 配置使用SimpleMappingExceptionResolver来处理异常 -->
-			<bean class="org.springframework.web.servlet.handler.SimpleMappingExceptionResolver">
-				<!-- 设置异常信息绑定到request的时候所用的key -->
-				<property name="exceptionAttribute" value="exee"></property>
-				<property name="exceptionMappings">
-					<props>
-						<!-- key:指定异常类型 -->
-						<prop key="java.lang.ArrayIndexOutOfBoundsException">error</prop>
-						<!-- <prop key="java.lang.NullPointerException">error1</prop> -->
-					</props>
-					
-				</property>
-			</bean>
-			
-	(17)拦截器
-		****编写自定义拦截器
-		  **实现HandlerInterceptor接口，实现preHandle()  postHandle()  afterCompletion()三个抽象方法
-		  **在配置文件中配置拦截器
-			<!-- 配置拦截器 -->
-			<mvc:interceptors>
-				<!-- 使用超链接切换国际化  -->
-				<bean class="org.springframework.web.servlet.i18n.LocaleChangeInterceptor"></bean>
-				<!-- 自定义拦截器 -->
-				<bean class="com.atguigu.springmvc.interceptor.MySecondInterceptor"></bean>
-				<bean class="com.atguigu.springmvc.interceptor.MyFirstInterceptor"></bean>
-				<!-- 
-				拦截器更丰富的配法:
-				<mvc:interceptor>
-					<mvc:mapping path="/emps"/>  只对指定的请求起拦截作用
-					<mvc:exclude-mapping path="/emps"/>  对除了指定的请求之外的起拦截作用
-					<bean class="MyThirdInterceptor"></bean>
-				</mvc:interceptor> 
-				-->
-			</mvc:interceptors>
-			
-		****拦截器中方法的执行顺序
-			preHandle()-->目标方法-->postHandle()-->afterCompletion()
-		****多个拦截器的执行顺序
-			多个拦截器的执行顺序跟拦截器在配置文件中的配置顺序对应。先配置的先执行。
-		****多个拦截器的方法的执行顺序
-			preHandle():  根据拦截器的配置顺序正序执行
-			postHandle():  根据拦截器的配置顺序倒序执行
-			afterCompletion():  根据拦截器的配置顺序倒序执行
-			
-	(18)SpringMVC的运行流程
-	(19)Spring+SpringMVC
-		1.SpringIOC 容器   与  SpringMVC的容器  使用哪个？ 或者都使用?
-			a. 使用SpringMVC容器，将所有的配置都配到SpringMVC的配置文件中.
-			缺点: 大量的配置集中到一起.  正常情况下SpringMVC还是尽量只处理视图层的组件.
-			
-			b. 两个容器都使用:  *****
-			让SpringMVC的容器只负责视图层的组件
-			让Spring的容器负责除了springMVC所负责的组件之外的所有组件.(数据源,事务,Service,Dao, 与其他框架的整合...)    
-		
-		
-		2.SpringIOC容器如何初始化?
-				在非web环境下使用Spring的时候，都是通过new ClassPathXmlApplicationContext("spring.xml")来初始化IOC容器.
-			在web环境下使用Spring的时候，需要使用监听器将SpringIOC容器进行初始化
-			监听ServletContext的生命周期.
-		
-		3.Spring 与 SpringMVC一起使用的时候,包扫描问题
-			问题: 相关的组件被创建了两次.
-			解决: 让SpringMVC只扫描带有@Controller注解的组件.
-			让Spring扫描除了带有@Controller注解之外的组件
-		
-		4. 两个容器之间的关系
-			SpringIOC容器与SpringMVC的容器是父子关系.
-			SpringMVC能访问到SpringIOC容器中的bean.
-			SpringIOC不能访问SpringMVC容器中的bean.
-			
+    (1)概述：
+        Spring 为展现层提供的基于 MVC 设计理念的优秀的 Web 框架，是目前最主流的 MVC 框架之一。
+        Spring3.0 后全面超越 Struts2，成为最优秀的 MVC 框架。
+        Spring MVC 通过一套 MVC 注解，让 POJO 成为处理请求的控制器，而无须实现任何接口。
+        支持 REST 风格的 URL 请求。
+        采用了松散耦合可插拔组件结构，比其他 MVC 框架更具扩展性和灵活性。
+    (2)配置web.xml文件：SpringMVC的前端控制器(核心控制器)
+        DispatcherServlet是SPringMVC框架的前端控制器，简单理解就是请求到达后，由DispatcherServlet进行
+        请求的处理。就是找到当前请求映射(@RequestMapping)的处理方法。
+        执行处理方法。
+        <!-- SpringMVC的前端控制器 -->
+        <servlet>
+            <servlet-name>springDispatcherServlet</servlet-name>
+            <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+            
+            <!-- 配置初始化参数:初始化DispatcherServlet的时候需要用到的一些配置参数. 
+                            需要指定SpringMVC的配置文件
+            -->     
+            <init-param>
+                <param-name>contextConfigLocation</param-name>
+                <param-value>classpath:springmvc.xml</param-value>
+            </init-param>
+            <!-- 配置当前的DispatcherServlet在tomcat容器启动的时候就被创建. -->
+            <load-on-startup>1</load-on-startup>
+        </servlet>
+        <servlet-mapping>
+            <servlet-name>springDispatcherServlet</servlet-name>
+            <!-- /login   /delete  /update   /user/delete .... 
+                此处可以有多种配置:
+                    精确匹配   /login    /delete
+                    后缀匹配   *.do   *.action  *.任何
+                          login.do  delete.do
+                    通配符匹配:  /*
+                此处配置/的目的是  可以拦截所有的请求并且可以更好的支持REST风格的URL
+            -->
+            <url-pattern>/</url-pattern>
+        </servlet-mapping>
+        
+    (3)配置springmvc.xml
+        ****开启注解扫描
+        <!-- 开启注解扫描 -->
+        <context:component-scan base-package="com.atguigu.springmvc"></context:component-scan>
+        
+        ****视图解析器
+        <!-- 配置SpringMVC的视图解析器
+         InternalResourceViewResolver的工作原理:
+            结合prefix  处理器方法的返回值    suffix  生成视图，通过转发去往视图.
+            eg:  prefix + 处理器方法的返回值  + suffix
+                 /WEB-INF/views/hello.jsp
+         -->
+        <bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+            <property name="prefix" value="/"></property>
+            <property name="suffix" value=".jsp"></property>
+        </bean>
+        
+    (4)处理器(控制器)
+        定义一个普通类，通过@Controller标识该类为处理器类。将来请求到达后，DispatcherServlet就会找
+        带有@Controller的类中的处理方法。
+    (5)处理方法(目标方法)
+        SpringMVC对处理方法的编写是松散的。没有强制性的要求必须要按照制定的格式来编写。
+        通过@RequestMapping注解来指定请求与处理方法的映射关系。
+    (6)@RequestMapping注解
+        ****该注解可以加在类上或是方法上，如果类上以及方法上都加了该注解，则最终映射的URL就是
+            类上注解的value值+方法上注解的value值。
+            如果只有方法上加了该注解，则最终映射的URL就是方法上注解的value值。
+        ****method
+            该注解支持映射请求方式：GET  POST  PUT  DELETE
+        ****params
+            该注解支持映射请求参数。
+        ****headers
+            该注解支持映射请求头信息。
+            
+    (7)@PathVaribale
+        该注解可以将URL中占位符的值映射到请求方法的入参中。REST风格的URL需要也来与该注解来实现。
+            /**
+             * @PathVariable  映射请求URL占位符的值到处理方法的入参
+             */
+            //浏览器: http://localhost:3306/springMVC01/testPathVariable/1/22
+            @RequestMapping("/testPathVariable/{id}/{age}")
+            public String testPathVariable(@PathVariable("id")Integer id , @PathVariable("age")Integer age ){
+                System.out.println(id + ":" + age);
+                return "success";
+            }
+            
+    (8)REST
+        ****REST风格的URL      对比      原始风格的url
+                        
+                    |   REST            |   原始
+            --------+-------------------+------------------
+            添加  |   user(POST)      |   addUser
+            --------+-------------------+------------------
+            删除  |   user/1(DELETE)  |   deleteUser?id=1
+            --------+-------------------+------------------
+            修改  |   user/1(GET)     |   selectUser?id=1
+                    |   user(PUT)       |   updateUser
+            --------+-------------------+------------------
+            查询  |   user/1(GET)     |   selectUser?id=1
+            
+        ****使用REST风格的URL，需要配置@PathVariable注解将URL占位符的值映射到方法入参中
+        ****REST风格的URL需要发送GET  POST  PUT  DELETE 请求，但是form表单只支持POST请求。
+            因此需要使用HiddenHttpMethodFilter来将POST请求转化成对应的PUT/DELETE请求
+            
+            <!-- 配置支持REST风格URL的过滤器 
+                   HiddenHttpMethodFilter工作机制:
+                        是否要将post请求转换成put或者是delete请求，该过滤器会通过 _method从request中获取
+                        请求参数.然后判断当前的请求方式是post，并且通过_method能获取到值.就会将_method
+                        获取到的值包装成新的请求执行后续的处理逻辑
+                        request.getParameter("_method");
+              -->   
+              <filter>
+                <filter-name>HiddenHttpMethodFilter</filter-name>
+                <filter-class>org.springframework.web.filter.HiddenHttpMethodFilter</filter-class>
+              </filter>
+              <filter-mapping>
+                <filter-name>HiddenHttpMethodFilter</filter-name>
+                <url-pattern>/*</url-pattern>
+              </filter-mapping>
+            
+    (9)映射请求参数/请求头
+        ****@RequestParam
+          **将请求参数映射到方法的入参中。 语法@RequestParam("请求参数名")Object args;
+          **如果请求参数名与方法的入参名字一样，可以不通过@RequestParam进行指定。
+          **默认情况下@RequestParam注解标注的入参，必须要从请求参数中获取到对应的数据，如果获取
+            不到对应的数据会报错。可以使用required=false来设置。
+          **defaultValue可以设置默认值
+        ****@RequestHeader
+            可以将请求头信息映射到目标方法的入参中。
+        ****映射请求参数到POJO
+            可以直接将请求参数映射到指定的POJO的属性中，并且支持级联操作。
+        ****原生的ServletAPI
+            SpringMVC支持在目标方法的入参中，直接定义原生的ServletAPI，将来SpringMVC调用目标方法的
+            时候就会将对应的对象传入，在目标方法中就可以使用定义好的原生的ServletAPI。
+    (10)处理模型数据
+        ****ModelAndView
+            ModelAndView是用于方法的返回值，早目标方法中，通过new的方式创建出ModelAndView对象，然后通过
+            setViewName()来设置视图名称，addObject(k,v)方法来设置模型数据。
+            最终SpringMVC会将ModelAndView中的模型添加到request对象中，通过转发的方式去往ModelAndView中设置的视图。
+        ****Model/Map
+            Model/Map是用于方法的入参。在目标方法中，可以定义Map或者是Model类型的入参，SpringMVC在
+            调用目标方法的时候，会传入BindingAwareModelMap对象，在目标方法中，可以调用相关的方法往
+            Map或者是Model中存放模型数据，最终SpringMVC调用完目标方法后，会解析成ModelAndView，将
+            Map或者是Model中的数据设置到ModelAndView中，将方法的返回值设置到ModelAndView中。
+            最终，会把ModelAndView中的模型数据添加到request对象中，通过转发的方式，去往ModelAndView
+            中设置的视图
+        ****@SessionAttributes
+            该注解用在类上，作用是指定将哪些数据添加到session对象中。
+            value={}:通过指定key的方式，将对应的数据添加到session对象中。
+            types={}:通过指定数据的类型的方式，将对应的数据添加到session对象中。
+    (11)视图和视图解析器
+        ****视图是由视图解析器解析得到的。视图解析器解析得到视图以后，视图再去处理模型数据。(将模型数据
+            设置到request对象中)，最终通过转发的方式响应到客户端。
+            eg：InternalResourceViewResolver  ====>  InternalResourceView  ====>  转发
+            eg：RedirectView  ====>  重定向
+        ****工作流程
+          **调用目标方法，得到ModelAndView对象。mav中包含视图名称以及模型数据
+          **处理结果：先通过视图名称配合视图解析器得到真正的视图。
+          **视图去处理模型数据，主要就是将模型数据设置到request对象中
+          **获取转发器，转发到页面中
+        ****重定向：RedirectView
+    (12)REST_CRUD
+        ****查询操作
+          **页面：emps请求
+            /**
+             * 查询所有的员工信息， 呈现到页面
+             */
+            @RequestMapping(value="/emps",method=RequestMethod.GET)
+            public String  selectAllEmps(Map<String,Object> maps ){
+                Collection<Employee> emps = employeeDao.getAllEmps();
+                maps.put("emps", emps);
+                return "list";
+            }
+            
+        ****添加操作
+          **去往添加页面，添加页面的表单使用SpringMVC的表单标签，使用表单标签的目的是快速开发页面以及数据回显。
+            /**
+             * 去往添加页面
+             */
+            @RequestMapping(value="/emp",method=RequestMethod.GET)
+            public String toAddPage(Map<String,Object> maps){
+                //查询部门信息
+                Collection<Department> departments = departmentDao.getDepartments();
+                maps.put("departments", departments);
+                //解决回显数据的问题
+                maps.put("employee", new Employee());
+                return "input";
+            }
+            
+          **在添加页面中录入要添加的数据，提交表单
+            
+          **在服务器端的处理方法中，将表单提交的数据存入数据库，重定向到列表页面
+            /**
+             * 添加员工
+             */
+            @RequestMapping(value="/emp",method=RequestMethod.POST)
+            public String addEmp(Employee employee){
+                System.out.println("employee:"+ employee);
+                employeeDao.save(employee);
+                //回到列表页面
+                return "redirect:/emps";
+            }
+        ****删除操作
+          **通过点击删除链接，发起删除请求。删除在REST中需要发送的是DELETE请求。因此需要借助于JavaScript技术
+            发起POST请求，携带上<input type="hidden" name="_method" value="DELETE"/>隐藏域
+            <script type="text/javascript">
+                //编写js代码
+                $(function(){
+                    //写到此处的语句代码当页面加载完毕后就会自动执行.
+                    //alert("Hello Jquery....");
+                    //
+                    $(".delete").click(function(){
+                        //获取id值为delete的  A标签的href的值
+                        var href= $(this).attr("href");
+                        //alert(href);
+                        //给id为deleteForm的action属性赋href的值. 并且提交.
+                        $("#deleteForm").attr("action",href).submit();
+                        return false ; // 禁止a标签的默认行为.  a标签不在发送href的请求.
+                    });
+                });
+            </script>
+            
+            <!-- 用于删除发送DELETE请求的表单 -->
+            <form id="deleteForm" action="" method="post">
+                <input type="hidden" name="_method" value="DELETE"/>
+            </form>
+          **在服务器端处理方法中，将对应的数据删除，然后重定向到列表页面。
+            /**
+             * 根据id删除员工
+             */
+            @RequestMapping(value="emp/{id}",method=RequestMethod.DELETE)
+            public String deleteEmp(@PathVariable("id")Integer id ){
+                employeeDao.deleteEmpById(id);
+                //删除完后重定向到列表页面.
+                return "redirect:/emps";
+            }
+            
+        ****修改操作
+          **根据id查询出要修改的数据，显示到页面中
+            /**
+             * 去往修改页面
+             */
+            @RequestMapping(value="emp/{id}",method=RequestMethod.GET)
+            public String toUpdatePage(@PathVariable("id")Integer id,Map<String,Object> maps ){
+                //根据id查询要修改的数据
+                Employee employee = employeeDao.getEmpById(id);
+                maps.put("employee", employee);
+                //因为修改页面要用到所有的部门信息，因此要查询所有的部门信息，将查到的数据设置到request中
+                Collection<Department> departments = departmentDao.getDepartments();
+                maps.put("departments", departments);
+                return "input";
+            }
+          **在修改的页面中，填入要修改的数据，然后提交表单
+          **在服务器端处理方法中，将修改的数据在数据库进行修改
+            /**
+             * 修改操作
+             */
+            @RequestMapping(value="/emp",method=RequestMethod.PUT)
+            public String updateEmp(Employee employee){
+                employeeDao.save(employee);
+                return "redirect:/emps";
+            }
+          
+        ****SpringMVC的表单标签
+          **使用表单标签先要导入标签库
+            <!-- 导入SpringMVC的表单标签 -->
+            <%@taglib prefix="form" uri="http://www.springframework.org/tags/form" %>
+          **使用表单标签的目的：快速的开发页面；更加方便的回显数据
+          **使用表单标签需要注意的问题
+            SpringMVC的表单标签认为表单的数据必须要回显。默认情况下会使用"command"到request中查找
+            用于回显的数据。如果找不到对应的数据就会抛出异常。
+            可以使用modelAttribute属性来指定具体查找的key。
+            我们在操作的过程中，去往页面，进行数据回显的时候，一定要保证能让表单标签找到回显的数据。
+        ****处理静态资源
+          **在web.xml中将DispatcherServlet的url-pattern配置为/。就会拦截web容器的所有请求，
+            包括静态资源的请求。
+          **如何处理静态资源：>让SpringMVC处理带有后缀的请求，例如：*.do  *.action  等。
+                               此种方式不建议使用，因为优秀的REST风格的URL不希望带有任何后缀；、
+                              >在SpringMVC的配置文件中配置<mvc:default-servlet-handler/>
+          **配置了<mvc:default-servlet-handler/>需要注意的问题：
+            配置了<mvc:default-servlet-handler/>后，会导致@RequestMapping的映射不能用，因此需要配合
+            <mvc:annotation-driven/>一起使用
+        ****实际开发中将<mvc:annotation-driven/>配上
+    (13)处理JSON
+        ****HttpMessageConverter
+            用于加你个请求数据转换成java对象，或者将java对象转换成相应的数据。
+        ****如何处理JSON：>导入jackson的jar包
+                          >在想要返回json数据的处理方法上，标注@ResponseBody注解即可。
+            /**
+             * 测试JSON
+             */
+            @ResponseBody
+            @RequestMapping("/testJSON")
+            public Collection<Employee> testJSON(){
+                Collection<Employee> emps = employeeDao.getAllEmps();
+                return emps ;
+            }
+    (14)国际化
+        ****如何进行国际化
+            SpringMVC默认情况下会装载一个AcceptHeaderLocaleResolver组件，该组件会从请求头信息中
+            获取Accept-language的本地化信息，解析得到当前的Locale。最终由ResourceBundleMessageSource
+            组件结合国际化稳健将对应的数据展示给页面。
+            如果要切换国际化，就要通过浏览器的语言设置来完成。
+        ****通过超链接的方法切换国际化
+          **配置SessionLocaleResolver
+          **配置LocalChangeInterceptor
+          **在超链接中发送locale=zh_CN/en_US的请求参数
+            
+    (15)文件的上传
+        ****上传文件的组件  CommonsMultipartResolver，底层是用Commons FileUpload技术实现的。
+            <!-- 配置上传组件 -->
+            <bean id="multipartResolver" 
+                class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+                <!-- 字符编码    需要配置成与jsp页面一致的编码-->    
+                <property name="defaultEncoding" value="utf-8"></property>
+                <!-- 最大的上传大小   以字节为单位-->
+                <property name="maxUploadSize" value="1024000"></property>
+            </bean>
+            
+        ****具体上传的代码
+            /**
+             * 上传操作
+             * @throws IOException 
+             */
+            @RequestMapping("/testFileUpload")
+            public String testFileUpload(@RequestParam("uploadFile")MultipartFile uploadFile ,
+                                @RequestParam("desc")String desc ) throws IOException{
+                //表单:  上传域   + 普通文本域
+                System.out.println("uploadFile:"+ uploadFile);
+                System.out.println("in:" + uploadFile.getInputStream());
+                System.out.println("desc:"+ desc);
+                
+                uploadFile.transferTo(new File("e:"+File.separator+uploadFile.getOriginalFilename()));
+                return "success";
+            }
+            
+    (16)异常的处理
+        ****ExceptionHandlerExceptionResolver
+          **支持使用@ExceprionHandler注解来进行异常的处理
+          **@ExceptionHandler({异常类.class})是有优先级问题的。优先选择匹配度最高的异常处理方法。
+          **可以通过@ControllerAdvice来实现全局的异常处理
+            当Handler中抛出异常后，如果在当前的Handler中找不到异常处理办法，就会到标注了@ControllerAdvice
+            的类中寻找异常处理方法。
+          
+        ****SimpleMappingExceptionResolver
+          **将指定的异常映射到指定的页面
+          **具体的配置：
+            <!-- 配置使用SimpleMappingExceptionResolver来处理异常 -->
+            <bean class="org.springframework.web.servlet.handler.SimpleMappingExceptionResolver">
+                <!-- 设置异常信息绑定到request的时候所用的key -->
+                <property name="exceptionAttribute" value="exee"></property>
+                <property name="exceptionMappings">
+                    <props>
+                        <!-- key:指定异常类型 -->
+                        <prop key="java.lang.ArrayIndexOutOfBoundsException">error</prop>
+                        <!-- <prop key="java.lang.NullPointerException">error1</prop> -->
+                    </props>
+                    
+                </property>
+            </bean>
+            
+    (17)拦截器
+        ****编写自定义拦截器
+          **实现HandlerInterceptor接口，实现preHandle()  postHandle()  afterCompletion()三个抽象方法
+          **在配置文件中配置拦截器
+            <!-- 配置拦截器 -->
+            <mvc:interceptors>
+                <!-- 使用超链接切换国际化  -->
+                <bean class="org.springframework.web.servlet.i18n.LocaleChangeInterceptor"></bean>
+                <!-- 自定义拦截器 -->
+                <bean class="com.atguigu.springmvc.interceptor.MySecondInterceptor"></bean>
+                <bean class="com.atguigu.springmvc.interceptor.MyFirstInterceptor"></bean>
+                <!-- 
+                拦截器更丰富的配法:
+                <mvc:interceptor>
+                    <mvc:mapping path="/emps"/>  只对指定的请求起拦截作用
+                    <mvc:exclude-mapping path="/emps"/>  对除了指定的请求之外的起拦截作用
+                    <bean class="MyThirdInterceptor"></bean>
+                </mvc:interceptor> 
+                -->
+            </mvc:interceptors>
+            
+        ****拦截器中方法的执行顺序
+            preHandle()-->目标方法-->postHandle()-->afterCompletion()
+        ****多个拦截器的执行顺序
+            多个拦截器的执行顺序跟拦截器在配置文件中的配置顺序对应。先配置的先执行。
+        ****多个拦截器的方法的执行顺序
+            preHandle():  根据拦截器的配置顺序正序执行
+            postHandle():  根据拦截器的配置顺序倒序执行
+            afterCompletion():  根据拦截器的配置顺序倒序执行
+            
+    (18)SpringMVC的运行流程
+    (19)Spring+SpringMVC
+        1.SpringIOC 容器   与  SpringMVC的容器  使用哪个？ 或者都使用?
+            a. 使用SpringMVC容器，将所有的配置都配到SpringMVC的配置文件中.
+            缺点: 大量的配置集中到一起.  正常情况下SpringMVC还是尽量只处理视图层的组件.
+            
+            b. 两个容器都使用:  *****
+            让SpringMVC的容器只负责视图层的组件
+            让Spring的容器负责除了springMVC所负责的组件之外的所有组件.(数据源,事务,Service,Dao, 与其他框架的整合...)    
+        
+        
+        2.SpringIOC容器如何初始化?
+                在非web环境下使用Spring的时候，都是通过new ClassPathXmlApplicationContext("spring.xml")来初始化IOC容器.
+            在web环境下使用Spring的时候，需要使用监听器将SpringIOC容器进行初始化
+            监听ServletContext的生命周期.
+        
+        3.Spring 与 SpringMVC一起使用的时候,包扫描问题
+            问题: 相关的组件被创建了两次.
+            解决: 让SpringMVC只扫描带有@Controller注解的组件.
+            让Spring扫描除了带有@Controller注解之外的组件
+        
+        4. 两个容器之间的关系
+            SpringIOC容器与SpringMVC的容器是父子关系.
+            SpringMVC能访问到SpringIOC容器中的bean.
+            SpringIOC不能访问SpringMVC容器中的bean.
+            
 附：常见HTTP状态码
-	(1)分类描述
-			1** 信息。服务器收到请求，请继续执行请求 2** 成功。请求被成功接收并处理 3** 重定向。
-		需要进一步操作来完成请求 4** 客户端错误。无法完成请求，或请求包含语法错误 5** 服务
-		器错误。服务器在处理请求的过程中发成错误。
-	(2)各个状态说明
-			100 继续请求者应当继续提出请求。服务器已收到请求的一部分，正在等待其余部分。 
-			101 切换协议请求者已要求服务器切换协议，服务器已确认并准备切换。
-			200 成功服务器已成功处理了请求。
-			201 已创建请求成功并且服务器创建了新的资源。 
-			202 已接受服务器已接受请求，但尚未处理。 
-			203 非授权信息服务器已成功处理了请求，但返回的信息可能来自另一来源。 
-			204 无内容服务器成功处理了请求，但没有返回任何内容。
-			205 重置内容服务器成功处理了请求，内容被重置。
-			206 部分内容服务器成功处理了部分请求。 
-			300 多种选择针对请求，服务器可执行多种操作。 
-			301 永久移动请求的网页已永久移动到新位置，即永久重定向。
-			302 临时移动请求的网页暂时跳转到其他页面，即暂时重定向。
-			303 查看其他位置如果原来的请求是 POST，重定向目标文档应该通过GET 提取。
-			304 未修改此次请求返回的网页未修改，继续使用上次的资源。
-			305 使用代理请求者应该使用代理访问该网页。
-			307 临时重定向请求的资源临时从其他位置响应。 
-			400 错误请求服务器无法解析该请求。
-			401 未授权请求没有进行身份验证或验证未通过。
-			403 禁止访问服务器拒绝此请求。
-			404 未找到服务器找不到请求的网页。
-			405 方法禁用服务器禁用了请求中指定的方法。 
-			406 不接受无法使用请求的内容响应请求的网页。
-			407 需要代理授权请求者需要使用代理授权。 
-			408 请求超时服务器请求超时。 
-			409 冲突服务器在完成请求时发生冲突。 
-			410 已删除请求的资源已永久删除。
-			411 需要有效长度服务器不接受不含有效内容长度标头字段的请求。
-			412 未满足前提条件服务器未满足请求者在请求中设置的其中一个前提条件。
-			413 请求实体过大请求实体过大，超出服务器的处理能力。
-			414 请求 URI 过长请求网址过长，服务器无法处理。
-			415 不支持类型请求的格式不受请求页面的支持。
-			416 请求范围不符页面无法提供请求的范围。
-			417 未满足期望值服务器未满足期望请求标头字段的要求。
-			500 服务器内部错误服务器遇到错误，无法完成请求。
-			501 未实现服务器不具备完成请求的功能。 
-			502 错误网关服务器作为网关或代理，从上游服务器收到无效响应。 
-			503 服务不可用服务器目前无法使用。
-			504 网关超时服务器作为网关或代理，但是没有及时从上游服务器收到请求。
-			505 HTTP 版本不支持服务器不支持请求中所用的 HTTP 协议版本。
+    (1)分类描述
+            1** 信息。服务器收到请求，请继续执行请求 2** 成功。请求被成功接收并处理 3** 重定向。
+        需要进一步操作来完成请求 4** 客户端错误。无法完成请求，或请求包含语法错误 5** 服务
+        器错误。服务器在处理请求的过程中发成错误。
+    (2)各个状态说明
+            100 继续请求者应当继续提出请求。服务器已收到请求的一部分，正在等待其余部分。 
+            101 切换协议请求者已要求服务器切换协议，服务器已确认并准备切换。
+            200 成功服务器已成功处理了请求。
+            201 已创建请求成功并且服务器创建了新的资源。 
+            202 已接受服务器已接受请求，但尚未处理。 
+            203 非授权信息服务器已成功处理了请求，但返回的信息可能来自另一来源。 
+            204 无内容服务器成功处理了请求，但没有返回任何内容。
+            205 重置内容服务器成功处理了请求，内容被重置。
+            206 部分内容服务器成功处理了部分请求。 
+            300 多种选择针对请求，服务器可执行多种操作。 
+            301 永久移动请求的网页已永久移动到新位置，即永久重定向。
+            302 临时移动请求的网页暂时跳转到其他页面，即暂时重定向。
+            303 查看其他位置如果原来的请求是 POST，重定向目标文档应该通过GET 提取。
+            304 未修改此次请求返回的网页未修改，继续使用上次的资源。
+            305 使用代理请求者应该使用代理访问该网页。
+            307 临时重定向请求的资源临时从其他位置响应。 
+            400 错误请求服务器无法解析该请求。
+            401 未授权请求没有进行身份验证或验证未通过。
+            403 禁止访问服务器拒绝此请求。
+            404 未找到服务器找不到请求的网页。
+            405 方法禁用服务器禁用了请求中指定的方法。 
+            406 不接受无法使用请求的内容响应请求的网页。
+            407 需要代理授权请求者需要使用代理授权。 
+            408 请求超时服务器请求超时。 
+            409 冲突服务器在完成请求时发生冲突。 
+            410 已删除请求的资源已永久删除。
+            411 需要有效长度服务器不接受不含有效内容长度标头字段的请求。
+            412 未满足前提条件服务器未满足请求者在请求中设置的其中一个前提条件。
+            413 请求实体过大请求实体过大，超出服务器的处理能力。
+            414 请求 URI 过长请求网址过长，服务器无法处理。
+            415 不支持类型请求的格式不受请求页面的支持。
+            416 请求范围不符页面无法提供请求的范围。
+            417 未满足期望值服务器未满足期望请求标头字段的要求。
+            500 服务器内部错误服务器遇到错误，无法完成请求。
+            501 未实现服务器不具备完成请求的功能。 
+            502 错误网关服务器作为网关或代理，从上游服务器收到无效响应。 
+            503 服务不可用服务器目前无法使用。
+            504 网关超时服务器作为网关或代理，但是没有及时从上游服务器收到请求。
+            505 HTTP 版本不支持服务器不支持请求中所用的 HTTP 协议版本。
+    
+    三层架构：Controller(控制层)  service(服务层)  dao(持久层)
