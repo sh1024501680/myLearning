@@ -376,3 +376,8 @@ DolphinScheduler中的zookeeper主要用作：
     任务队列，用于master将任务发送给worker
     锁，用于主机（master和worker）之间的通信
     事件观察者。master聆听worker添加或删除的事件
+
+BIO：阻塞式IO
+NIO：非阻塞式IO
+AIO：异步非阻塞式IO
+Linux对AIO支持不是很好，所以使用Epoll模拟AIO
