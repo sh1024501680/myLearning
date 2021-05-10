@@ -184,6 +184,10 @@ hive强大的系统函数：
     3.若无索引，手动创建lzo索引
 hadoop jar $HADOOP_HOME/share/hadoop/common/hadoop-lzo-0.4.20.jar  com.hadoop.compression.lzo.DistributedLzoIndexer  /output/part-r-00000.lzo
 Hadoop 删除文件跳过回收站(释放空间)：rm命令加上 -skipTrash 参数
+Hadoop程序在Windows下运行报错：org.apache.hadoop.io.nativeio.NativeIO$Windows.createFileWithMode0
+		是因为配置的系统环境变量Path的任意目录下存在hadoop.dll文件，从而被认为这是一个hadoop集群环境，
+	但是hadoop集群又不支持window环境而产生的异常。
+		解决办法：检查系统环境变量Path下的每一个目录，确保没有hadoop.dll文件即可
     
 前端复选框全选js
     function chk(obj) {
