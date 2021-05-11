@@ -496,3 +496,6 @@
                     SparkSession.builder().enableHiveSupport().config(sparkConf).getOrCreate()
                 3.  增加对应的依赖关系
                     mysql驱动
+
+五、Spark Streaming
+	(1)

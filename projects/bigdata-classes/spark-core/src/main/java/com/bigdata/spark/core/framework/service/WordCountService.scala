@@ -1,8 +1,8 @@
 package com.bigdata.spark.core.framework.service
 
 import org.apache.spark.rdd.RDD
-import spark.core.framework.common.TService
-import spark.core.framework.dao.WordCountDao
+import com.bigdata.spark.core.framework.common.TService
+import com.bigdata.spark.core.framework.dao.WordCountDao
 
 class WordCountService extends TService{
 

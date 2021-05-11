@@ -1,7 +1,7 @@
 package com.bigdata.spark.core.framework.common
 
 import org.apache.spark.{SparkConf, SparkContext}
-import spark.core.framework.util.EnvUtil
+import com.bigdata.spark.core.framework.util.EnvUtil
 
 trait TApplication {
 

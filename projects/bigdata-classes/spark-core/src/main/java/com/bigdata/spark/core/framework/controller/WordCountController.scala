@@ -1,7 +1,7 @@
 package com.bigdata.spark.core.framework.controller
 
-import spark.core.framework.common.TController
-import spark.core.framework.service.WordCountService
+import com.bigdata.spark.core.framework.common.TController
+import com.bigdata.spark.core.framework.service.WordCountService
 
 class WordCountController extends TController{
 
