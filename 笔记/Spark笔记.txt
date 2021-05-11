@@ -441,58 +441,58 @@
     
     (2)使用
                 
-		spark.sql("select * from json.`datas/users.json`").show()
+        spark.sql("select * from json.`datas/users.json`").show()
                 
     (3)RDD和DataFrame的转换
                 
     (4)RDD、DataFrame、DataSet的对比
-	   共性：
+       共性：
           RDD、DataFrame、DataSet都是spark平台下的分布式弹性数据集，为处理超大型数据提供便利
           三者都有惰性机制，在进行创建、转换，如map方法时，不会立即执行，只有在遇到Action如foreach时，才进行遍历预算
-	      三者有许多共同的函数，如filter、排序等
-	      对DataFrame和DataSet进行许多操作都需要 import spark.implicits._ (在创建好SparkSession对象【变量名spark】后尽量直接导入)
-	      三者都会根据spark的内存情况进行自动缓存运算，即使数据量很大也不用担心数据溢出
-	      三者都有 partition 的概念
+          三者有许多共同的函数，如filter、排序等
+          对DataFrame和DataSet进行许多操作都需要 import spark.implicits._ (在创建好SparkSession对象【变量名spark】后尽量直接导入)
+          三者都会根据spark的内存情况进行自动缓存运算，即使数据量很大也不用担心数据溢出
+          三者都有 partition 的概念
           DataFrame和DataSet均可使用模式匹配获取各个字段的值和类型
-	   区别：
-	      RDD：
+       区别：
+          RDD：
                RDD不和spark mllib 一起使用
                RDD不支持 sparksql 操作
-		  DataFrame：
-		       DataFrame 每一行的类型固定为 Row ，每一列的值没法直接访问，只有通过解析才能获取各个字段的值
-			   DataFrame 和 DataSet 一般不用 spark mllib 连用
-			   DataFrame 和 DataSet 支持sparksql，还能注册临时表、视图，进行SQL操作
-			   DataFrame 和 DataSet 支持一些特别方便的保存方式，比如保存成csv，可以带上表头
-		  DataSet：
-		       DataFrame 和 DataSet 拥有完全相同的成员函数，区别只是每一行的数据类型不同
-			   DataFrame其实就是DataSet的一个特例 type DataFrame = DataSet[Row]
-			   
+          DataFrame：
+               DataFrame 每一行的类型固定为 Row ，每一列的值没法直接访问，只有通过解析才能获取各个字段的值
+               DataFrame 和 DataSet 一般不用 spark mllib 连用
+               DataFrame 和 DataSet 支持sparksql，还能注册临时表、视图，进行SQL操作
+               DataFrame 和 DataSet 支持一些特别方便的保存方式，比如保存成csv，可以带上表头
+          DataSet：
+               DataFrame 和 DataSet 拥有完全相同的成员函数，区别只是每一行的数据类型不同
+               DataFrame其实就是DataSet的一个特例 type DataFrame = DataSet[Row]
+               
                 
     (5)数据加载和保存
-	   通用的：(默认parquet格式，通过 spark.sql.sources.default 修改)
-			加载：    val df: DataFrame = spark.read.[format("json").]load("datas/users.json")
-			保存：    df.write.[mode("")][format("json").]save("output")
-		mode:
-			error     | SaveMode.ErrorIfExists -> 如果文件已存在抛出异常
-			append    | SaveMode.Append        -> 如果文件已存在则追加
-			overwrite | SaveMode.Overwrite     -> 如果文件已存在则覆盖
-			ignore    | SaveMode.Ignore        -> 如果文件已存在则忽略
-	   快捷：
-			加载：    val df: DataFrame = spark.read.json("datas/users.json")
-			保存：    df.write.json("output")
+       通用的：(默认parquet格式，通过 spark.sql.sources.default 修改)
+            加载：    val df: DataFrame = spark.read.[format("json").]load("datas/users.json")
+            保存：    df.write.[mode("")][format("json").]save("output")
+        mode:
+            error     | SaveMode.ErrorIfExists -> 如果文件已存在抛出异常
+            append    | SaveMode.Append        -> 如果文件已存在则追加
+            overwrite | SaveMode.Overwrite     -> 如果文件已存在则覆盖
+            ignore    | SaveMode.Ignore        -> 如果文件已存在则忽略
+       快捷：
+            加载：    val df: DataFrame = spark.read.json("datas/users.json")
+            保存：    df.write.json("output")
 
     (6)SparkSQL连接hive
-		内置hive：spark.sql("") 直接写hive SQL 语句
-		外置hive：
-			命令行：hive-site.xml 放到 SPARK_HOME 的conf目录下
-				    core-site.xml 放到 SPARK_HOME 的conf目录下
-				    hdfs-site.xml 放到 SPARK_HOME 的conf目录下
-				    mysql 驱动jar 放到 SPARK_HOME 的jar 目录下
+        内置hive：spark.sql("") 直接写hive SQL 语句
+        外置hive：
+            命令行：hive-site.xml 放到 SPARK_HOME 的conf目录下
+                    core-site.xml 放到 SPARK_HOME 的conf目录下
+                    hdfs-site.xml 放到 SPARK_HOME 的conf目录下
+                    mysql 驱动jar 放到 SPARK_HOME 的jar 目录下
             idea： 
                 1.  hive-site.xml 放到 resources 目录下
                     core-site.xml 放到 resources 目录下
                     hdfs-site.xml 放到 resources 目录下
-				2.  启用hive支持
-					SparkSession.builder().enableHiveSupport().config(sparkConf).getOrCreate()
-				3.  增加对应的依赖关系
-					mysql驱动
+                2.  启用hive支持
+                    SparkSession.builder().enableHiveSupport().config(sparkConf).getOrCreate()
+                3.  增加对应的依赖关系
+                    mysql驱动
