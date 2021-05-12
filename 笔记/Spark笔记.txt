@@ -482,6 +482,11 @@
             保存：    df.write.json("output")
 
     (6)SparkSQL连接hive
+        val spark: SparkSession = SparkSession.builder()
+                .enableHiveSupport()  //启用hive支持  重要
+                .config(sparkConf)
+                .getOrCreate()
+    
         内置hive：spark.sql("") 直接写hive SQL 语句
         外置hive：
             命令行：hive-site.xml 放到 SPARK_HOME 的conf目录下
@@ -498,4 +503,4 @@
                     mysql驱动
 
 五、Spark Streaming
-	(1)
+    (1)概念：准实时（秒、分钟），微批次（时间）的数据处理框架
