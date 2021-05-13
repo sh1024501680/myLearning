@@ -1,239 +1,239 @@
 一、Flink是什么
-	1.概念
-			Apache Flink是一个框架和分布式处理引擎，用于对无
-		边界和有边界的数据流进行有状态的计算。Flink被设计为可
-		在所有常见的集群环境中运行，以内存速度和任何规模执行计算。
-	2.应用领域
-		有界和无界流：流可以是无界或有界的，即固定大小的数据集。
-			Flink具有复杂的功能来处理无限制的流，还具有专用的运算符
-			来有效地处理有限制的流。
-		实时流和记录流：所有数据均作为流生成。有两种处理数据的
-			方法。在生成流时对其进行实时处理，或将流持久化到存储系统
-			（例如文件系统或对象存储）中，并在以后进行处理。
-			Flink应用程序可以处理记录的流或实时流。
+    1.概念
+            Apache Flink是一个框架和分布式处理引擎，用于对无
+        边界和有边界的数据流进行有状态的计算。Flink被设计为可
+        在所有常见的集群环境中运行，以内存速度和任何规模执行计算。
+    2.应用领域
+        有界和无界流：流可以是无界或有界的，即固定大小的数据集。
+            Flink具有复杂的功能来处理无限制的流，还具有专用的运算符
+            来有效地处理有限制的流。
+        实时流和记录流：所有数据均作为流生成。有两种处理数据的
+            方法。在生成流时对其进行实时处理，或将流持久化到存储系统
+            （例如文件系统或对象存储）中，并在以后进行处理。
+            Flink应用程序可以处理记录的流或实时流。
 二、Flink的使用
-	1.安装Flink
-		(1)官网https://flink.apache.org/下载flink的tar包
-		(2)上传至linux虚拟机
-		(3)tar -zxf flink-1.11.2-bin-scala_2.12.tgz -C /opt/install
-		(4)进入flink目录下,bin/start-cluster.sh 启动standalone模式(master/worker内都是当前主机名)
-	2.并行度优先级：
-		(1)代码中每个算子的优先级设置
-		(2)代码中全局配置的优先级
-		(3)代码中没有定义,以提交任务时的设置为准
-		(4)提交任务未设置,以集群配置文件中设置的默认值为准
-	3.提交job
-		(1)standalone模式:
-			bin/flink run -c wc.StreamWordCount -p 2 ~/FlinkTutorial-1.0-SNAPSHOT-jar-with-dependencies.jar --host centos7-101 --port 7777
-		(2)yarn-session:
-			启动Hadoop，
-			启动yarn-session：
-				./yarn-session.sh -n 2 -s 2 -jm 1024 -nm test -d 
-				-n(--container):TaskManager的数量(不常用)
-				-s(--slots):每个TaskManager的slot数量，默认一个slot一个core，默认
-				            每个taskmanager的slot数为1，有时可以多taskmanager做冗余
-				-jm JobManager的内存(MB)
-				-tm TaskManager的内存(MB)
-				-nm yarn的appName
-				-d 后台执行
-			提交job：bin/flink run -c wc.StreamWordCount ~/FlinkTutorial-1.0-SNAPSHOT-jar-with-dependencies.jar --host centos7-101 --port 7777
-		(3)Per Job cluster
-			启动Hadoop，
-			提交job：bin/flink run -m yarn-cluster -c wc.StreamWordCount ~/FlinkTutorial-1.0-SNAPSHOT-jar-with-dependencies.jar --host centos7-101 --port 7777
+    1.安装Flink
+        (1)官网https://flink.apache.org/下载flink的tar包
+        (2)上传至linux虚拟机
+        (3)tar -zxf flink-1.11.2-bin-scala_2.12.tgz -C /opt/install
+        (4)进入flink目录下,bin/start-cluster.sh 启动standalone模式(master/worker内都是当前主机名)
+    2.并行度优先级：
+        (1)代码中每个算子的优先级设置
+        (2)代码中全局配置的优先级
+        (3)代码中没有定义,以提交任务时的设置为准
+        (4)提交任务未设置,以集群配置文件中设置的默认值为准
+    3.提交job
+        (1)standalone模式:
+            bin/flink run -c wc.StreamWordCount -p 2 ~/FlinkTutorial-1.0-SNAPSHOT-jar-with-dependencies.jar --host centos7-101 --port 7777
+        (2)yarn-session:
+            启动Hadoop，
+            启动yarn-session：
+                ./yarn-session.sh -n 2 -s 2 -jm 1024 -nm test -d 
+                -n(--container):TaskManager的数量(不常用)
+                -s(--slots):每个TaskManager的slot数量，默认一个slot一个core，默认
+                            每个taskmanager的slot数为1，有时可以多taskmanager做冗余
+                -jm JobManager的内存(MB)
+                -tm TaskManager的内存(MB)
+                -nm yarn的appName
+                -d 后台执行
+            提交job：bin/flink run -c wc.StreamWordCount ~/FlinkTutorial-1.0-SNAPSHOT-jar-with-dependencies.jar --host centos7-101 --port 7777
+        (3)Per Job cluster
+            启动Hadoop，
+            提交job：bin/flink run -m yarn-cluster -c wc.StreamWordCount ~/FlinkTutorial-1.0-SNAPSHOT-jar-with-dependencies.jar --host centos7-101 --port 7777
 三、深入认识Flink
-	1.组件：
-		(1) JobManager(作业管理器):控制一个应用程序执行的主进程，即每个JobManager
-							   控制一个应用程序执行
-			JobManager工作流程:
-			  a.JobManager接收到要执行的应用程序，这个程序包括：作业图(JobGraph)、逻辑
-				数据流图(logical dataflow graph)和打包了所有的类、库和其他资源的JAR包。
-			  b.JobManager会把JobGraph转换成一个物理层面的数据流图——执行图(ExecutionGraph),
-				包含了所有可以并发执行的任务。
-			  c.JobManager会向资源管理器(ResourceManager)请求执行任务必要的资源，也就是
-			    任务管理器(TaskManager)上的插槽(slot)。一旦它获取到足够的资源，就会将
-				执行图分发到真正运行它们的TaskManager上。在运行过程中，JobManager会负责
-				所有需要中央协调的操作，比如说检查点(checkpoints)的协调。
-		(2) TaskManager(任务管理器)：Flink中的工作进程。通常在Flink中会有多个TaskManager
-									运行，每一个TaskManager都包含了一定数量的插槽(slots)。
-									插槽的数量限制了TaskManager能够执行的任务数量。
-			TaskManager工作流程：
-			  a.启动后，TaskManager会向资源管理器注册它的插槽，收到资源管理器的指令后，
-			    TaskManager就会将一个或多个插槽提供给JobManager调用。JobManager可以向
-				插槽分配任务(tasks)来执行了。
-			  b.TaskManager执行过程中可以跟其他运行同一程序的TaskManager交换数据
-			
-			每一个TaskManager可以理解为一个JVM进程,它可能会在独立的线程上执行一个或多个子任务.
-			为了控制一个TaskManager接受多少个task,TaskManager通过task slot来控制.
-			(一个TaskManager至少有一个slot)
-			默认情况下,Flink允许子任务共享slot,即使它们是不同任务的子任务.这样的结果是,
-			一个slot可以保存作业的整个管道.
-		(3) ResourceManager(资源管理器)：主要负责管理TaskManager(任务管理器)的插槽(slot),
-										TaskManager插槽是Flink中定义的处理资源单元.
-				当JobManager申请插槽资源时，ResourceManager会将有空闲插槽的TaskManager
-				分配给JobManager。如果ResourceManager没有足够的插槽满足JobManager的需求，
-				它还可以向资源平台发起会话，以提供启动TaskManager进程的容器。
-		(4)Dispatcher:提供web UI
-	2.并行度
-		每一个特定算子的子任务个数就是其并行度
-		一般情况下一个stream的并行度为其所有算子中并行度中最大的并行度
-	3.Flink程序的三个组成部分
-		(1) Source:读取数据
-		(2) Transformation:利用各种算子进行处理加工
-		(3) Sink:负责输出
-	4.窗口分配器(Window assigner)
-		window()方法接收的输入参数是一个WindowAssigner
-		 (*)window()方法必须在KeyBy后使用
-		WindowAssigner 负责将每条输入的数据分发到正确的window中
-		Flink提供了通用的WindowAssigner：
-			滚动窗口(tumbling window)
-			滑动窗口(sliding window)
-			会话窗口(session window)
-			全局窗口(global window)
-		窗口函数(window function)：定义了要对窗口收集的数据做的计算操作
-			增量聚合函数：每条数据到来就计算，保持一个简单的状态
-				ReduceFunction,AggregateFunction
-			全窗口函数：先把窗口所有数据收集起来，计算的时候遍历所有数据
-				ProcessWindowFunction
-		其他可选API(windowStream调用)
-			trigger()触发器：定义window什么时候关闭，触发计算并输出结果
-			evictor():定义移除某些数据的逻辑
-			allowedLateness:允许处理迟到的数据
-			sideOutputLateData()：将迟到的数据放入侧输出流
-			getSideOutput():获取侧输出流（DataStream操作）
-		确定当前窗口的起始点：当前窗口的整数倍
-	5.水位线(水印)WaterMark:
-		为了避免乱序数据带来计算不准确
-		WaterMark是一种衡量Event Time 进展的机制，可以设定延迟触发
-		WaterMark用于处理乱序事件，通常与window结合来实现
-		数据流中的WaterMark用于表示timestamp小于WaterMark的数据，都已经到达了，因此
-			window的执行也是由WaterMark触发的
-		WaterMark用来让程序自己平衡延迟和结果正确性
-		watermark是一条特殊的数据记录，必须单调递增，以保证任务的事件时钟在向前推进，
-		而不是在后退，watermark与数据的时间戳相关
-		生成机制：
-			a.周期性：AssignerWithPeriodicWatermarks
-			b.单点式：AssignerWithPunctuatedWatermarks
-	6.状态
-		    不能跨任务访问状态，同一个分区访问相同的状态
-		
-		算子状态：
-			数据结构：
-				列表状态
-				联合列表状态
-		键控状态：
-			根据输入数据流中定义的键(key)来维护和访问的
-			
-			Flink为每一个key维护一个状态实例，并将具有相同键的所有实例，
-			都分区到同一个子任务中，这个任务会维护和处理这个key对应的状态
-			
-			当任务处理一条数据时，它会自动将状态的访问范围限定为当前数据的key
-			
-			数据结构：
-				值状态
-				列表状态
-				映射状态(K-V对)
-				聚合状态
-				
-		广播状态
-		
-		状态后端 
-			MemoryStateBackend:内存级的状态后端，会将键控状态作为内存中的对象
-				进行管理，将它们存储在TaskManager的JVM堆上，而将checkpoint存储
-				在JobManager的内存中。
-				特点：快速、低延迟，但不稳定
-			FsStateBackend:将checkpoint存到远程的持久化文件系统(FileSystem)上，
-				而对于本地状态，跟MemoryStateBacnend一样，也会存在TaskManager
-				的JVM堆上
-				特点：同时拥有内存级的访问速度，和更好的容错保证
-			RocksDBStateBackend:将所有状态序列化后，存入本地的RocksDB中存储。
-		
-	7.检查点(Checkpoint)
-		    有状态流的一致检查点，其实就是所有任务的状态，在某个时间点的一份
-		拷贝(一份快照)；这个时间点，应该是所有任务都恰好处理完一个输入数据的时候
-	
-		    检查点分界线(Checkpoint Barrier)：Flink的检查点算法用到了一种成为
-		分界线(barrier)的特殊数据形式，用来把一条流上数据按照不同的检查点分开
-		
-		    分界线之前到来的数据状态更改，都会被包含在当前分界线所属检查点中，
-		分界线之后的数据导致的所有更改，会被包含在之后的检查点中。
-		
-		    JobManager会向每个source任务发送一条带有新检查点ID的消息，通过这种
-		方式来启动检查点
-		
-		    source将它的状态写入检查点，并发出一个检查点barrier
-			
-		    状态后端在状态存入检查点之后，会返回通知给source任务，source任务就会
-		向JobManager确认检查点完成
-		
-		    分界线对齐：barrier向下游传递，sum任务会等待所有输入分区的barrier到达
-			
-		    对于barrier已经到达的分区，继续到达的数据会被缓存
-			
-		    barrier尚未到达的分区，数据会被正常处理
-			
-		    当收到所有输入分区的barrier时，任务就将其状态保存到后端的检查点中，
-		然后将barrier继续向下游转发
+    1.组件：
+        (1) JobManager(作业管理器):控制一个应用程序执行的主进程，即每个JobManager
+                               控制一个应用程序执行
+            JobManager工作流程:
+              a.JobManager接收到要执行的应用程序，这个程序包括：作业图(JobGraph)、逻辑
+                数据流图(logical dataflow graph)和打包了所有的类、库和其他资源的JAR包。
+              b.JobManager会把JobGraph转换成一个物理层面的数据流图——执行图(ExecutionGraph),
+                包含了所有可以并发执行的任务。
+              c.JobManager会向资源管理器(ResourceManager)请求执行任务必要的资源，也就是
+                任务管理器(TaskManager)上的插槽(slot)。一旦它获取到足够的资源，就会将
+                执行图分发到真正运行它们的TaskManager上。在运行过程中，JobManager会负责
+                所有需要中央协调的操作，比如说检查点(checkpoints)的协调。
+        (2) TaskManager(任务管理器)：Flink中的工作进程。通常在Flink中会有多个TaskManager
+                                    运行，每一个TaskManager都包含了一定数量的插槽(slots)。
+                                    插槽的数量限制了TaskManager能够执行的任务数量。
+            TaskManager工作流程：
+              a.启动后，TaskManager会向资源管理器注册它的插槽，收到资源管理器的指令后，
+                TaskManager就会将一个或多个插槽提供给JobManager调用。JobManager可以向
+                插槽分配任务(tasks)来执行了。
+              b.TaskManager执行过程中可以跟其他运行同一程序的TaskManager交换数据
+            
+            每一个TaskManager可以理解为一个JVM进程,它可能会在独立的线程上执行一个或多个子任务.
+            为了控制一个TaskManager接受多少个task,TaskManager通过task slot来控制.
+            (一个TaskManager至少有一个slot)
+            默认情况下,Flink允许子任务共享slot,即使它们是不同任务的子任务.这样的结果是,
+            一个slot可以保存作业的整个管道.
+        (3) ResourceManager(资源管理器)：主要负责管理TaskManager(任务管理器)的插槽(slot),
+                                        TaskManager插槽是Flink中定义的处理资源单元.
+                当JobManager申请插槽资源时，ResourceManager会将有空闲插槽的TaskManager
+                分配给JobManager。如果ResourceManager没有足够的插槽满足JobManager的需求，
+                它还可以向资源平台发起会话，以提供启动TaskManager进程的容器。
+        (4)Dispatcher:提供web UI
+    2.并行度
+        每一个特定算子的子任务个数就是其并行度
+        一般情况下一个stream的并行度为其所有算子中并行度中最大的并行度
+    3.Flink程序的三个组成部分
+        (1) Source:读取数据
+        (2) Transformation:利用各种算子进行处理加工
+        (3) Sink:负责输出
+    4.窗口分配器(Window assigner)
+        window()方法接收的输入参数是一个WindowAssigner
+         (*)window()方法必须在KeyBy后使用
+        WindowAssigner 负责将每条输入的数据分发到正确的window中
+        Flink提供了通用的WindowAssigner：
+            滚动窗口(tumbling window)
+            滑动窗口(sliding window)
+            会话窗口(session window)
+            全局窗口(global window)
+        窗口函数(window function)：定义了要对窗口收集的数据做的计算操作
+            增量聚合函数：每条数据到来就计算，保持一个简单的状态
+                ReduceFunction,AggregateFunction
+            全窗口函数：先把窗口所有数据收集起来，计算的时候遍历所有数据
+                ProcessWindowFunction
+        其他可选API(windowStream调用)
+            trigger()触发器：定义window什么时候关闭，触发计算并输出结果
+            evictor():定义移除某些数据的逻辑
+            allowedLateness:允许处理迟到的数据
+            sideOutputLateData()：将迟到的数据放入侧输出流
+            getSideOutput():获取侧输出流（DataStream操作）
+        确定当前窗口的起始点：当前窗口的整数倍
+    5.水位线(水印)WaterMark:
+        为了避免乱序数据带来计算不准确
+        WaterMark是一种衡量Event Time 进展的机制，可以设定延迟触发
+        WaterMark用于处理乱序事件，通常与window结合来实现
+        数据流中的WaterMark用于表示timestamp小于WaterMark的数据，都已经到达了，因此
+            window的执行也是由WaterMark触发的
+        WaterMark用来让程序自己平衡延迟和结果正确性
+        watermark是一条特殊的数据记录，必须单调递增，以保证任务的事件时钟在向前推进，
+        而不是在后退，watermark与数据的时间戳相关
+        生成机制：
+            a.周期性：AssignerWithPeriodicWatermarks
+            b.单点式：AssignerWithPunctuatedWatermarks
+    6.状态
+            不能跨任务访问状态，同一个分区访问相同的状态
+        
+        算子状态：
+            数据结构：
+                列表状态
+                联合列表状态
+        键控状态：
+            根据输入数据流中定义的键(key)来维护和访问的
+            
+            Flink为每一个key维护一个状态实例，并将具有相同键的所有实例，
+            都分区到同一个子任务中，这个任务会维护和处理这个key对应的状态
+            
+            当任务处理一条数据时，它会自动将状态的访问范围限定为当前数据的key
+            
+            数据结构：
+                值状态
+                列表状态
+                映射状态(K-V对)
+                聚合状态
+                
+        广播状态
+        
+        状态后端 
+            MemoryStateBackend:内存级的状态后端，会将键控状态作为内存中的对象
+                进行管理，将它们存储在TaskManager的JVM堆上，而将checkpoint存储
+                在JobManager的内存中。
+                特点：快速、低延迟，但不稳定
+            FsStateBackend:将checkpoint存到远程的持久化文件系统(FileSystem)上，
+                而对于本地状态，跟MemoryStateBacnend一样，也会存在TaskManager
+                的JVM堆上
+                特点：同时拥有内存级的访问速度，和更好的容错保证
+            RocksDBStateBackend:将所有状态序列化后，存入本地的RocksDB中存储。
+        
+    7.检查点(Checkpoint)
+            有状态流的一致检查点，其实就是所有任务的状态，在某个时间点的一份
+        拷贝(一份快照)；这个时间点，应该是所有任务都恰好处理完一个输入数据的时候
+    
+            检查点分界线(Checkpoint Barrier)：Flink的检查点算法用到了一种成为
+        分界线(barrier)的特殊数据形式，用来把一条流上数据按照不同的检查点分开
+        
+            分界线之前到来的数据状态更改，都会被包含在当前分界线所属检查点中，
+        分界线之后的数据导致的所有更改，会被包含在之后的检查点中。
+        
+            JobManager会向每个source任务发送一条带有新检查点ID的消息，通过这种
+        方式来启动检查点
+        
+            source将它的状态写入检查点，并发出一个检查点barrier
+            
+            状态后端在状态存入检查点之后，会返回通知给source任务，source任务就会
+        向JobManager确认检查点完成
+        
+            分界线对齐：barrier向下游传递，sum任务会等待所有输入分区的barrier到达
+            
+            对于barrier已经到达的分区，继续到达的数据会被缓存
+            
+            barrier尚未到达的分区，数据会被正常处理
+            
+            当收到所有输入分区的barrier时，任务就将其状态保存到后端的检查点中，
+        然后将barrier继续向下游转发
 
-		    Sink任务向JobManager确认状态保存到checkpoint完毕
-		    所有任务都确认已成功将状态保存到检查点，检查点就真正完成了
-	8.保存点(Savepoints)
-		    Flink提供的自定义镜像保存功能
-		    
-		    原则上，创建保存点使用的算法与检查点完全相同，因此保存点可以认为就是
-		就有一些额外元数据的检查点
-		
-		    Flink不会自动创建保存点，因此用户(或者外部调度程序)必须明确触发创建操作
-			
-		    保存点是一个强大的功能。除了故障恢复外，保存点可用于：有计划的手动备份，
-		更新应用程序，版本迁移，暂停和重启应用，等
-	9.状态一致性
-		    流内每个算子都有自己的状态，一条数据不应该丢失，也不该重新计算，遇到故障时
-		可以恢复状态，恢复以后的重新计算，结果也应该完全正确
-		
-		AT-MOST-ONCE(最多一次)
-		    当任务故障时，最简单的做法就是什么都不干，既不恢复丢失的状态，也不重播丢失
-		的数据。at-most-once语义的含义是最多处理一次事件。
-		
-		AT-LEAST-ONCE(至少一次)
-		    所有事件都得到处理，一些事件可能被处理多次
-		
-		EXACTLY-ONCE(精确一次)
-		    没有数据丢失，且每一个数据内部状态仅更新一次
-		
-		端到端的exactly-once：
-			Flink内部保证：checkpoint
-			source端：可重设数据的读取位置
-			sink端：从故障恢复时，数据不会重写入外部系统
-				幂等写入：可以执行多次操作，只导致一次结果更改
-				事务写入：
-					思想：构建的事务对应着checkpoint，等到checkpoint真正完成的时候
-						才把对应的结果写入到sink系统中
-					实现方式：
-						预写日志(Write-Ahead-Log,WAL)：把结果数据先当成状态保存，然后在收到
-							checkpoint完成的通知时一次性写入sink系统
-								简单易于实现，由于数据在状态后端中做了缓存，所以无论什么sink
-							系统，都可以用这种方式一批搞定
-						两阶段提交：对于每个checkpoint，sink任务会启动一个事务，并将接下来所有
-							接收到的数据添加到事务里
-								然后将这些数据写入外部sink系统，但不提交它们——这只是"预提交"
-								当它收到checkpoint完成的通知时，它才正式提交事务，实现结果的
-							真正写入
-							对外部sink的要求：外部sink必须提供事务支持，或者sink任务必须
-								能模拟外部系统上的事务。
-									在checkpoint的间隔期间里，必须能够开启一个事务并接受
-								数据写入。
-									在收到checkpoint完成的通知之前，事务必须是"等待提交"
-								的状态。在故障恢复的情况下，这可能需要一些时间。如果这个
-								时候sink系统关闭事务(比如超时)，那么未提交的数据就会丢失。
-									sink任务必须能在进程失败后恢复事务。
-									提交事务必须是幂等操作。
-						两阶段提交步骤：
-							    第一条数据来了之后，开启一个kafka的事务，正常写入kafka
-							分区日志但标记为未提交，这就是"预提交"。
-							    JobManager触发checkpoint操作，barrier从source开始向下传递，
-							遇到barrier的算子将状态存入状态后端，并通知JobManager
-							    sink连接器收到barrier，保存当前状态，存入checkpoint，通知
-							JobManager，并开启下一阶段的事务，用于提交下个检查点的数据
-							    JobManager收到所有任务的通知，发出确认信息，表示checkpoint完成
-							    sink任务收到JobManager的确认信息，正式提交这段时间的数据
-							    外部kafka关闭事务，提交的数据可以正常消费了
+            Sink任务向JobManager确认状态保存到checkpoint完毕
+            所有任务都确认已成功将状态保存到检查点，检查点就真正完成了
+    8.保存点(Savepoints)
+            Flink提供的自定义镜像保存功能
+            
+            原则上，创建保存点使用的算法与检查点完全相同，因此保存点可以认为就是
+        就有一些额外元数据的检查点
+        
+            Flink不会自动创建保存点，因此用户(或者外部调度程序)必须明确触发创建操作
+            
+            保存点是一个强大的功能。除了故障恢复外，保存点可用于：有计划的手动备份，
+        更新应用程序，版本迁移，暂停和重启应用，等
+    9.状态一致性
+            流内每个算子都有自己的状态，一条数据不应该丢失，也不该重新计算，遇到故障时
+        可以恢复状态，恢复以后的重新计算，结果也应该完全正确
+        
+        AT-MOST-ONCE(最多一次)
+            当任务故障时，最简单的做法就是什么都不干，既不恢复丢失的状态，也不重播丢失
+        的数据。at-most-once语义的含义是最多处理一次事件。
+        
+        AT-LEAST-ONCE(至少一次)
+            所有事件都得到处理，一些事件可能被处理多次
+        
+        EXACTLY-ONCE(精确一次)
+            没有数据丢失，且每一个数据内部状态仅更新一次
+        
+        端到端的exactly-once：
+            Flink内部保证：checkpoint
+            source端：可重设数据的读取位置
+            sink端：从故障恢复时，数据不会重写入外部系统
+                幂等写入：可以执行多次操作，只导致一次结果更改
+                事务写入：
+                    思想：构建的事务对应着checkpoint，等到checkpoint真正完成的时候
+                        才把对应的结果写入到sink系统中
+                    实现方式：
+                        预写日志(Write-Ahead-Log,WAL)：把结果数据先当成状态保存，然后在收到
+                            checkpoint完成的通知时一次性写入sink系统
+                                简单易于实现，由于数据在状态后端中做了缓存，所以无论什么sink
+                            系统，都可以用这种方式一批搞定
+                        两阶段提交：对于每个checkpoint，sink任务会启动一个事务，并将接下来所有
+                            接收到的数据添加到事务里
+                                然后将这些数据写入外部sink系统，但不提交它们——这只是"预提交"
+                                当它收到checkpoint完成的通知时，它才正式提交事务，实现结果的
+                            真正写入
+                            对外部sink的要求：外部sink必须提供事务支持，或者sink任务必须
+                                能模拟外部系统上的事务。
+                                    在checkpoint的间隔期间里，必须能够开启一个事务并接受
+                                数据写入。
+                                    在收到checkpoint完成的通知之前，事务必须是"等待提交"
+                                的状态。在故障恢复的情况下，这可能需要一些时间。如果这个
+                                时候sink系统关闭事务(比如超时)，那么未提交的数据就会丢失。
+                                    sink任务必须能在进程失败后恢复事务。
+                                    提交事务必须是幂等操作。
+                        两阶段提交步骤：
+                                第一条数据来了之后，开启一个kafka的事务，正常写入kafka
+                            分区日志但标记为未提交，这就是"预提交"。
+                                JobManager触发checkpoint操作，barrier从source开始向下传递，
+                            遇到barrier的算子将状态存入状态后端，并通知JobManager
+                                sink连接器收到barrier，保存当前状态，存入checkpoint，通知
+                            JobManager，并开启下一阶段的事务，用于提交下个检查点的数据
+                                JobManager收到所有任务的通知，发出确认信息，表示checkpoint完成
+                                sink任务收到JobManager的确认信息，正式提交这段时间的数据
+                                外部kafka关闭事务，提交的数据可以正常消费了

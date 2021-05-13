@@ -70,30 +70,30 @@ hue集成hive的坑：
             sys.setdefaultencoding('utf8')
     
 hive 常用属性配置
-	hive导入未分区数据到分区表
-		#开启动态分区设置
-		set hive.exec.dynamic.partition =true
-		set hive.exec.dynamic.partition.mode = nonstrict
-		#
-		set hive.exec.max.dynamic.partitions.pernode=1000;
-		set hive.exec.max.dynamic.partitions=10000;
-		set hive.exec.max.created.files=10000;
-	
-	数据倾斜调优
-	hive.groupby.skewindata=true 数据倾斜时负载均衡，当选项设定为true，生成的查询计划会有两个MRJob。第一个MRJob 中，Map的输出结果集合会随机分布到Reduce中，每个Reduce做部分聚合操作，并输出结果，这样处理的结果是相同的GroupBy Key有可能被分发到不同的Reduce中，从而达到负载均衡的目的；第二个MRJob再根据预处理的数据结果按照GroupBy Key分布到Reduce中（这个过程可以保证相同的GroupBy Key被分布到同一个Reduce中），最后完成最终的聚合操作。
-	
-	hive开启本地模式：
-		set hive.exec.mode.local.auto=true;
-		-- 设置输入数据小于该值，使用本地模式 52428800:50MB  134217728:128MB
-		set hive.exec.mode.local.auto.inputbytes.max=134217728;
-		-- 设置maptask个数小于5使用本地模式
-		set hive.exec.mode.local.auto.input.files.max=5;		
-		
+    hive导入未分区数据到分区表
+        #开启动态分区设置
+        set hive.exec.dynamic.partition =true
+        set hive.exec.dynamic.partition.mode = nonstrict
+        #
+        set hive.exec.max.dynamic.partitions.pernode=1000;
+        set hive.exec.max.dynamic.partitions=10000;
+        set hive.exec.max.created.files=10000;
+    
+    数据倾斜调优
+    hive.groupby.skewindata=true 数据倾斜时负载均衡，当选项设定为true，生成的查询计划会有两个MRJob。第一个MRJob 中，Map的输出结果集合会随机分布到Reduce中，每个Reduce做部分聚合操作，并输出结果，这样处理的结果是相同的GroupBy Key有可能被分发到不同的Reduce中，从而达到负载均衡的目的；第二个MRJob再根据预处理的数据结果按照GroupBy Key分布到Reduce中（这个过程可以保证相同的GroupBy Key被分布到同一个Reduce中），最后完成最终的聚合操作。
+    
+    hive开启本地模式：
+        set hive.exec.mode.local.auto=true;
+        -- 设置输入数据小于该值，使用本地模式 52428800:50MB  134217728:128MB
+        set hive.exec.mode.local.auto.inputbytes.max=134217728;
+        -- 设置maptask个数小于5使用本地模式
+        set hive.exec.mode.local.auto.input.files.max=5;        
+        
 hive 分区操作
     删除时间范围分区：
     alter table wmxy_dwd.dwd_qianzhi_customer_status_day drop partition(dt_>='2020-01-01',dt_<'2021-01-01');
     # 导入未分区数据到分区表
-	insert overwrite table t1 partition(dt) select c1,c2 dt from t2;
+    insert overwrite table t1 partition(dt) select c1,c2 dt from t2;
 
 hive时间戳：默认10位，单位 秒
     时间戳转化为日期：
@@ -152,9 +152,11 @@ hive强大的系统函数：
                         mv googletest-release-1.5.0 gtest
                         再次执行
                 报错：autoreconf: command not found
-                    安装autoreconf
+                    安装 yum -y install autoconf
                 报错Can't exec "aclocal": 没有那个文件或目录 at /usr/share/autoconf/Autom4te/Fil
-                    安装automake
+                    安装 yum -y install automake
+                报错 error: possibly undefined macro: AC_PROG_LIBTOOL
+                    安装 yum -y install libtool libsysfs
             b.按顺序执行
                 ./configure --prefix=/usr/local/protobuf
                 make
@@ -162,6 +164,16 @@ hive强大的系统函数：
                 make install
     3.解压缩Hadoop源码并进入Hadoop源码文件夹
         mvn package -Pdist,native -DskipTests -Dtar
+        报错 CMake failed with error code 1 
+            升级Cmake：yum install -y gcc gcc-c++
+                       cd /opt/package
+                       wget https://cmake.org/files/v3.20/cmake-3.20.1.tar.gz
+                       tar -zxf cmake-3.20.1.tar.gz -C /opt/install/
+                       删除已安装的 cmake 版本 yum remove cmake -y
+                       ./configure --prefix=/usr/local/cmake
+                       安装：make && make install
+                       ln -s /usr/local/cmake/bin/cmake /usr/bin/cmake
+                       
     hadoop配置lzo压缩：
     1.将编译好后的hadoop-lzo-0.4.20.jar 放入 $HADOOP_HOME/share/hadoop/common/,分发至其他节点
     2.core-site.xml增加配置支持LZO压缩，分发至其他节点
@@ -185,9 +197,9 @@ hive强大的系统函数：
 hadoop jar $HADOOP_HOME/share/hadoop/common/hadoop-lzo-0.4.20.jar  com.hadoop.compression.lzo.DistributedLzoIndexer  /output/part-r-00000.lzo
 Hadoop 删除文件跳过回收站(释放空间)：rm命令加上 -skipTrash 参数
 Hadoop程序在Windows下运行报错：org.apache.hadoop.io.nativeio.NativeIO$Windows.createFileWithMode0
-		是因为配置的系统环境变量Path的任意目录下存在hadoop.dll文件，从而被认为这是一个hadoop集群环境，
-	但是hadoop集群又不支持window环境而产生的异常。
-		解决办法：检查系统环境变量Path下的每一个目录，确保没有hadoop.dll文件即可
+        是因为配置的系统环境变量Path的任意目录下存在hadoop.dll文件，从而被认为这是一个hadoop集群环境，
+    但是hadoop集群又不支持window环境而产生的异常。
+        解决办法：检查系统环境变量Path下的每一个目录，确保没有hadoop.dll文件即可
     
 前端复选框全选js
     function chk(obj) {
@@ -389,4 +401,4 @@ Linux对AIO支持不是很好，所以使用Epoll模拟AIO
 
 spark：
     操作mysql时：
-	    连接不能写在driver层；如果写在foreach算子中则每个RDD中的每条数据都创建连接，效率低；增加foreachPartition，在分区创建(获取)
+        连接不能写在driver层；如果写在foreach算子中则每个RDD中的每条数据都创建连接，效率低；增加foreachPartition，在分区创建(获取)
