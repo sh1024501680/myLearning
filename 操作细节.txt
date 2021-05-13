@@ -386,3 +386,7 @@ BIO：阻塞式IO
 NIO：非阻塞式IO
 AIO：异步非阻塞式IO
 Linux对AIO支持不是很好，所以使用Epoll模拟AIO
+
+spark：
+    操作mysql时：
+	    连接不能写在driver层；如果写在foreach算子中则每个RDD中的每条数据都创建连接，效率低；增加foreachPartition，在分区创建(获取)
