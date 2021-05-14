@@ -1,0 +1,1 @@
+SELECT `id`,`name`,`category1_id` FROM kkbmall.base_category2

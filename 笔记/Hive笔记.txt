@@ -90,7 +90,51 @@
 			** 修改HDFS系统中关于Hive的一些目录权限
 				$ /opt/modules/hadoop-2.5.0-cdh5.3.6/bin/hadoop fs -chmod 777 /tmp/
 				$ /opt/modules/hadoop-2.5.0-cdh5.3.6/bin/hadoop fs -chmod 777 /user/hive/warehouse
-			
+	hive on Spark 配置：
+	spark包上传、解压、重命名
+	进入hive conf目录，vim spark-defaults.conf
+	                   spark.master yarn
+                       spark.eventLog.enabled true
+                       spark.eventLog.dir hdfs://centos7:9000/user/spark-history
+                       spark.executor.memory 1g
+                       spark.driver.memory 1g
+    在hdfs 建立spark-history对应文件夹
+	解压**spark-3.0.0-bin-without-hadoop.tgz**,将所有的jar包上传到/spark-jars中
+	修改 hive-site.xml：
+	<!--Spark 依赖位置(注意:端口号 8020 必须和 namenode 的端口号一致)--> 
+    <property>
+       <name>spark.yarn.jars</name>
+       <value>hdfs://node01:8020/spark-jars/*</value>
+    </property>
+    <!--Hive 执行引擎--> <property>
+       <name>hive.execution.engine</name>
+       <value>spark</value>
+    </property>
+    <!--Hive 和 Spark 连接超时时间-->
+    <property>
+       <name>hive.spark.client.connect.timeout</name>
+       <value>10000ms</value>
+    </property>
+    
+    
+    <property>
+       <name>hive.strict.managed.tables</name>
+       <value>false</value>
+    </property>
+    <property>
+       <name>hive.create.as.insert.only</name>
+       <value>false</value>
+    </property>
+    <property>
+       <name>metastore.create.as.acid</name>
+       <value>false</value>
+    </property>
+    注意:hive.spark.client.connect.timeout 的默认值是 1000ms，如果执行 hive 的 insert 语句 时，抛如下异常，可以调大该参数到 10000ms
+    FAILED: SemanticException Failed to get a spark session: org.apache.hadoop.hive.ql.metadata.HiveException: Failed to create Spark client for Spark session d9e0224c-3d14-4bf4-95bc-ee3ec56df48e
+	
+	
+	将spark包中的spark*，拷贝到hive lib中。
+    将spark包中的scala*，拷贝到hive lib中。
 	3、hive的使用
 		** 创建数据库
 			语法：create database 库名;
