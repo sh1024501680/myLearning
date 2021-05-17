@@ -28,7 +28,7 @@
         (2)yarn-session:
             启动Hadoop，
             启动yarn-session：
-                ./yarn-session.sh -n 2 -s 2 -jm 1024 -nm test -d 
+                ./bin/yarn-session.sh -n 2 -s 2 -jm 1024 -nm test -d 
                 -n(--container):TaskManager的数量(不常用)
                 -s(--slots):每个TaskManager的slot数量，默认一个slot一个core，默认
                             每个taskmanager的slot数为1，有时可以多taskmanager做冗余
@@ -76,6 +76,7 @@
     2.并行度
         每一个特定算子的子任务个数就是其并行度
         一般情况下一个stream的并行度为其所有算子中并行度中最大的并行度
+        使用slotSharingGroup("")方法指定slot组，并行度=每个slot组最大并行度相加
     3.Flink程序的三个组成部分
         (1) Source:读取数据
         (2) Transformation:利用各种算子进行处理加工
