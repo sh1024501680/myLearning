@@ -360,11 +360,11 @@ linux：
           exit 0
         fi
     centos7防火墙操作：
-		firewall-cmd --list-ports  查看已开放的端口
-		firewall-cmd --zone=public --add-port=3338/tcp --permanent 开放端口（开放后需要要重启防火墙才生效）
-		firewall-cmd --zone=public --remove-port=3338/tcp --permanent 关闭端口（关闭后需要要重启防火墙才生效）
-		
-	
+        firewall-cmd --list-ports  查看已开放的端口
+        firewall-cmd --zone=public --add-port=3338/tcp --permanent 开放端口（开放后需要要重启防火墙才生效）
+        firewall-cmd --zone=public --remove-port=3338/tcp --permanent 关闭端口（关闭后需要要重启防火墙才生效）
+        
+    
 Flume启动两种写法：
     $ bin/flume-ng agent --conf conf/ --name a1 --conf-file conf/flume-telnet.conf -Dflume.root.logger==INFO,console
     $ bin/flume-ng agent -c conf/ -n a1 -f job/file-flume-logger.conf -Dflume.root.logger=INFO,console
