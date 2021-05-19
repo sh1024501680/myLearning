@@ -18,7 +18,7 @@ public class MySensorSource implements SourceFunction<SensorReading> {
             sensorReading.setTimeStamp(System.currentTimeMillis());
             sensorReading.setTemperature(random.nextGaussian() + 30);
             sourceContext.collect(sensorReading);
-            Thread.sleep(1000);
+            Thread.sleep(3000);
         }
     }
 

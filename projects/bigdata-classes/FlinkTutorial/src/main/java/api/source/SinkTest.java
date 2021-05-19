@@ -1,4 +1,4 @@
-package api.source.test;
+package api.source;
 
 import api.source.MySensorSource;
 import bean.SensorReading;

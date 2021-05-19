@@ -12,6 +12,7 @@ public class StreamWordCount {
 //        StreamExecutionEnvironment env = StreamExecutionEnvironment.createRemoteEnvironment("jobmanager-host", 6123, "/tmp/xx.jar");
 
 //        env.setParallelism(1);
+//        env.disableOperatorChaining();
 
         /*String inPath = "datas/words.txt";
         DataStream<String> stream = env.readTextFile(inPath);*/

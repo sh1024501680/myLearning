@@ -1,4 +1,4 @@
-package api.source.test;
+package api.transform;
 
 import bean.SensorReading;
 import org.apache.flink.api.common.functions.FilterFunction;
@@ -31,8 +31,8 @@ public class TransformTest {
     @Before
     public void getEnv() {
         env = StreamExecutionEnvironment.getExecutionEnvironment();
-        env.setParallelism(4);
-        String inPath = "D:\\JavaProjects\\IdeaProject\\FlinkTutorial\\src\\main\\resources\\sensor.csv";
+//        env.setParallelism(4);
+        String inPath = "src\\main\\resources\\sensor.csv";
         dataStream = env.readTextFile(inPath);
     }
 
@@ -41,12 +41,12 @@ public class TransformTest {
         //1.map 把String转换成字符串长度
         dataStream = dataStream.map((MapFunction<String, Integer>) s -> s.length());
         //2.flatMap 按逗号分隔
-        dataStream.flatMap((FlatMapFunction<String, String>) (line,out) ->{
+        /*dataStream.flatMap((FlatMapFunction<String, String>) (line,out) ->{
             String[] fields = line.split(",");
             for (String field : fields) {
                 out.collect(field);
             }
-        }).returns(String.class).print("flatMap-lambda");
+        }).returns(String.class).print("flatMap-lambda");*/
         /*inputStream.flatMap(new FlatMapFunction<String, String>() {
             @Override
             public void flatMap(String s, Collector<String> collector) throws Exception {
@@ -71,7 +71,7 @@ public class TransformTest {
                 )
         );
         //分组
-        KeyedStream keyedStream = dataStream.keyBy("id");
+        KeyedStream<SensorReading,Tuple2> keyedStream = dataStream.keyBy("id");
         SingleOutputStreamOperator resultStream = keyedStream.maxBy("temperature");
         resultStream.print();
     }
@@ -107,7 +107,7 @@ public class TransformTest {
         DataStream<SensorReading> high = splitStream.select("high");
         DataStream<SensorReading> low = splitStream.select("low");
         DataStream<SensorReading> all = splitStream.select("high", "low");
-        //2 合流
+        //2 合流  将高温流转换成二元组类型，与低温流连接合并之后，输出状态信息
         DataStream<Tuple2<String,Double>> highStream = high.map(new MapFunction<SensorReading, Tuple2<String, Double>>() {
             @Override
             public Tuple2<String, Double> map(SensorReading sensorReading) throws Exception {
@@ -141,7 +141,7 @@ public class TransformTest {
         DataStream<Tuple2<String, Integer>> resStream = dataStream.map(new RichMapFunction<SensorReading,Tuple2<String,Integer>>() {
             @Override
             public void open(Configuration parameters) throws Exception {
-                //初始化，一般是定义状态，或者建立数据库连接
+                // 初始化，一般是定义状态，或者建立数据库连接
                 System.out.println("open");
             }
 

@@ -10,5 +10,6 @@
         <module name="FlinkTutorial" />
       </profile>
     </annotationProcessing>
+    <bytecodeTargetLevel target="8" />
   </component>
 </project>

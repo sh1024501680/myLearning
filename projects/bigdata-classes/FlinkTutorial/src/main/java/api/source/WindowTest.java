@@ -1,4 +1,4 @@
-package api.source.test;
+package api.source;
 
 import bean.SensorReading;
 import org.apache.commons.collections.IteratorUtils;
