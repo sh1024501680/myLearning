@@ -83,24 +83,30 @@
         (3) Sink:负责输出
     4.窗口分配器(Window assigner)
         window()方法接收的输入参数是一个WindowAssigner
-         (*)window()方法必须在KeyBy后使用
+		
+        ****window()方法必须在KeyBy后使用
+		
         WindowAssigner 负责将每条输入的数据分发到正确的window中
+		
         Flink提供了通用的WindowAssigner：
             滚动窗口(tumbling window)
             滑动窗口(sliding window)
             会话窗口(session window)
             全局窗口(global window)
+			
         窗口函数(window function)：定义了要对窗口收集的数据做的计算操作
             增量聚合函数：每条数据到来就计算，保持一个简单的状态
                 ReduceFunction,AggregateFunction
             全窗口函数：先把窗口所有数据收集起来，计算的时候遍历所有数据
                 ProcessWindowFunction
+				
         其他可选API(windowStream调用)
             trigger()触发器：定义window什么时候关闭，触发计算并输出结果
             evictor():定义移除某些数据的逻辑
             allowedLateness:允许处理迟到的数据
             sideOutputLateData()：将迟到的数据放入侧输出流
             getSideOutput():获取侧输出流（DataStream操作）
+			
         确定当前窗口的起始点：当前窗口的整数倍
     5.水位线(水印)WaterMark:
         为了避免乱序数据带来计算不准确

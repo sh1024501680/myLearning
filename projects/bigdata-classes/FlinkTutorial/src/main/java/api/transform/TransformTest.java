@@ -94,7 +94,7 @@ public class TransformTest {
                         )).print();
     }
 
-    @Test
+    /*@Test
     public void transformTest4_MultipleStreams() {
         dataStream = dataStream.map(
                 (MapFunction<String,SensorReading>) f -> new SensorReading(
@@ -128,7 +128,7 @@ public class TransformTest {
         }).print();
         // union 合流(要求数据类型一致)
         high.union(low);
-    }
+    }*/
 
     @Test
     public void TransformTest5_RichFunction() {

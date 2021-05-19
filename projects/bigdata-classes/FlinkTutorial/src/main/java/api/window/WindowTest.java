@@ -1,4 +1,4 @@
-package api.source;
+package api.window;
 
 import bean.SensorReading;
 import org.apache.commons.collections.IteratorUtils;
@@ -31,7 +31,7 @@ public class WindowTest {
     @Before
     public void getEnv() {
         env = StreamExecutionEnvironment.getExecutionEnvironment();
-        env.setParallelism(1);
+//        env.setParallelism(1);
     }
 
     @Test
@@ -44,9 +44,9 @@ public class WindowTest {
                 Double.parseDouble(f.split(",")[2])));
         //开窗测试
         dataStream.keyBy("id")
-                .timeWindow(Time.seconds(15))
-//                .window(TumblingProcessingTimeWindows.of(Time.seconds(15)));
-//                .window(EventTimeSessionWindows.withGap(Time.seconds(30)));
+//                .timeWindow(Time.seconds(15))
+                .window(TumblingProcessingTimeWindows.of(Time.seconds(15)))
+//                .window(EventTimeSessionWindows.withGap(Time.seconds(30)))
 //                .countWindow(10, 2)
         //1.增量聚合
                 .aggregate(new AggregateFunction<SensorReading, Integer, Integer>() {
