@@ -138,7 +138,7 @@ public class WindowTest {
         //基于事件时间的开窗聚合，统计15s内的温度最小值
         SingleOutputStreamOperator<SensorReading> minTempStream = dataStream.keyBy("id")
                 .timeWindow(Time.seconds(15))
-                .allowedLateness(Time.minutes(1))
+                .allowedLateness(Time.minutes(1))   // 迟到时间 1分钟
                 .minBy("temperature");
 
         minTempStream.print("minTemp");

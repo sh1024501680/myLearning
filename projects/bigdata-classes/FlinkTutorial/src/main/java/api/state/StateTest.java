@@ -1,20 +1,14 @@
-package api.source;
+package api.state;
 
 import bean.SensorReading;
 import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.api.common.functions.RichFlatMapFunction;
 import org.apache.flink.api.common.functions.RichMapFunction;
 import org.apache.flink.api.common.restartstrategy.RestartStrategies;
-import org.apache.flink.api.common.state.ListState;
-import org.apache.flink.api.common.state.ListStateDescriptor;
-import org.apache.flink.api.common.state.MapState;
-import org.apache.flink.api.common.state.MapStateDescriptor;
-import org.apache.flink.api.common.state.ReducingState;
-import org.apache.flink.api.common.state.ValueState;
-import org.apache.flink.api.common.state.ValueStateDescriptor;
+import org.apache.flink.api.common.state.*;
 import org.apache.flink.api.common.time.Time;
 import org.apache.flink.configuration.Configuration;
-//import org.apache.flink.contrib.streaming.state.RocksDBStateBackend;
+import org.apache.flink.contrib.streaming.state.RocksDBStateBackend;
 import org.apache.flink.runtime.state.filesystem.FsStateBackend;
 import org.apache.flink.runtime.state.memory.MemoryStateBackend;
 import org.apache.flink.streaming.api.CheckpointingMode;
@@ -91,7 +85,7 @@ public class StateTest {
         // 状态后端的配置
         env.setStateBackend(new MemoryStateBackend());
         env.setStateBackend(new FsStateBackend("hdfs://"));
-//        env.setStateBackend(new RocksDBStateBackend(""));
+        env.setStateBackend(new RocksDBStateBackend(""));
         // 检查点配置
         env.enableCheckpointing(300, CheckpointingMode.EXACTLY_ONCE);
         //高级选项

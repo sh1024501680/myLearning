@@ -144,6 +144,7 @@
         广播状态
         
         状态后端 
+			做两件事：本地状态管理；检查点(checkpoint)状态写入远程存储
             MemoryStateBackend:内存级的状态后端，会将键控状态作为内存中的对象
                 进行管理，将它们存储在TaskManager的JVM堆上，而将checkpoint存储
                 在JobManager的内存中。
