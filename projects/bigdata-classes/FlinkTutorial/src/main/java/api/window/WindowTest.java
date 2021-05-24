@@ -2,8 +2,12 @@ package api.window;
 
 import bean.SensorReading;
 import org.apache.commons.collections.IteratorUtils;
+import org.apache.flink.api.common.eventtime.WatermarkGenerator;
+import org.apache.flink.api.common.eventtime.WatermarkGeneratorSupplier;
+import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.api.common.functions.AggregateFunction;
 import org.apache.flink.api.common.functions.MapFunction;
+import org.apache.flink.api.common.functions.ReduceFunction;
 import org.apache.flink.api.java.tuple.Tuple;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.api.java.tuple.Tuple3;
@@ -43,13 +47,19 @@ public class WindowTest {
                 Long.parseLong(f.split(",")[1]),
                 Double.parseDouble(f.split(",")[2])));
         //开窗测试
-        dataStream.keyBy("id")
+//        dataStream.keyBy("id")
 //                .timeWindow(Time.seconds(15))
-                .window(TumblingProcessingTimeWindows.of(Time.seconds(15)))
+//                .window(TumblingProcessingTimeWindows.of(Time.seconds(15)))
 //                .window(EventTimeSessionWindows.withGap(Time.seconds(30)))
 //                .countWindow(10, 2)
+                /*.reduce(new ReduceFunction<SensorReading>() {
+                    @Override
+                    public SensorReading reduce(SensorReading sensorReading, SensorReading t1) throws Exception {
+                        return null;
+                    }
+                })*/
         //1.增量聚合
-                .aggregate(new AggregateFunction<SensorReading, Integer, Integer>() {
+                /*.aggregate(new AggregateFunction<SensorReading, Integer, Integer>() {
                     @Override
                     public Integer createAccumulator() {
                         return 0;
@@ -70,10 +80,10 @@ public class WindowTest {
                         return integer + acc1;
                     }
                 })
-                //.print()
-        ;
+                .print()
+        ;*/
         //2.全窗口函数
-        SingleOutputStreamOperator<Tuple3<String,Long,Integer>> resultStream = dataStream.keyBy("id")
+        /*SingleOutputStreamOperator<Tuple3<String,Long,Integer>> resultStream = dataStream.keyBy("id")
                 .timeWindow(Time.seconds(15))
                 .apply(new WindowFunction<SensorReading, Tuple3<String,Long,Integer>, Tuple, TimeWindow>() {
                     @Override
@@ -93,7 +103,7 @@ public class WindowTest {
                 .allowedLateness(Time.minutes(1))
                 .sideOutputLateData(late)
                 .sum("temperature");
-        sumStream.getSideOutput(late).print("late");
+        sumStream.getSideOutput(late).print("late");*/
     }
 
     @Test
@@ -112,7 +122,10 @@ public class WindowTest {
     @Test
     public void windowTest3_EventTimeWindow() {
         env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
+
+        // 获取 config 设置 水印周期
         env.getConfig().setAutoWatermarkInterval(100);
+
         DataStreamSource<String> stream = env.socketTextStream("localhost", 7777);
         DataStream<SensorReading> dataStream = stream.map((MapFunction<String, SensorReading>) f -> new SensorReading(
                 f.split(",")[0],
@@ -125,7 +138,7 @@ public class WindowTest {
                         return element.getTimeStamp() * 1000L;
                     }
                 })*/
-                //乱序时间设置时间戳和watermark
+                //乱序数据设置时间戳和watermark
                 .assignTimestampsAndWatermarks(new BoundedOutOfOrdernessTimestampExtractor<SensorReading>(Time.seconds(2)) {
                     @Override
                     public long extractTimestamp(SensorReading element) {
@@ -145,6 +158,10 @@ public class WindowTest {
         minTempStream.getSideOutput(late).print("late");
     }
 
+    @Test
+    public void WindowTest3_EventTimeWindow() {
+
+    }
 
 
     private static class MyAvgTemp implements AggregateFunction<SensorReading, Tuple2<Double,Integer>,Double>{

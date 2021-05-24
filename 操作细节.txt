@@ -407,3 +407,18 @@ Linux对AIO支持不是很好，所以使用Epoll模拟AIO
 spark：
     操作mysql时：
         连接不能写在driver层；如果写在foreach算子中则每个RDD中的每条数据都创建连接，效率低；增加foreachPartition，在分区创建(获取)
+
+sqoop：
+    
+    qoop export \
+    -Dsqoop.export.records.per.statement=10000 \  批量提交
+    --connect 'jdbc:mysql://localhost:3306/test?useUnicode=true&characterEncoding=utf-8&useSSL=false' \
+    --username root \
+    --password 123456 \
+    --table tb1 \
+    --hcatalog-database default \
+    --hcatalog-table table1 \
+    --update-key col_1 \
+    --update-mode  allowinsert \
+    --input-fields-terminated-by '\001' \
+    --input-null-string '\\N' --input-null-non-string '\\N' -m 1

@@ -1,4 +1,4 @@
-package api.source;
+package api.processFunction;
 
 import bean.SensorReading;
 import org.apache.flink.api.common.functions.MapFunction;
@@ -23,7 +23,7 @@ public class ProcessTest {
     @Before
     public void getEnv() {
         env = StreamExecutionEnvironment.getExecutionEnvironment();
-        env.setParallelism(1);
+//        env.setParallelism(1);
     }
 
     @Test
@@ -53,6 +53,7 @@ public class ProcessTest {
                 f.split(",")[0],
                 Long.parseLong(f.split(",")[1]),
                 Double.parseDouble(f.split(",")[2])));
+        // 定义一个OutPutTag  用来表示侧输出流 低温流
         OutputTag<SensorReading> lowTemp = new OutputTag<SensorReading>("low-Temp") {
         };
         //自定义侧输出流实现分流操作
@@ -99,7 +100,7 @@ public class ProcessTest {
             //更新为当前的时间戳
             tsTimer.update(ctx.timestamp());
 
-//            ctx.timerService().deleteProcessingTimeTimer(ctx.timestamp() + 1000L);
+            ctx.timerService().deleteProcessingTimeTimer(ctx.timestamp() + 1000L);
 
         }
 
@@ -107,7 +108,8 @@ public class ProcessTest {
         public void onTimer(long timestamp, OnTimerContext ctx, Collector<Integer> out) throws Exception {
             System.out.println(timestamp + "定时器触发");
             ctx.getCurrentKey();
-//            ctx.output();
+//            ctx.output();  侧输出流
+//            out.collect();  主流
             ctx.timeDomain();
         }
     }
@@ -135,14 +137,14 @@ public class ProcessTest {
             if (lastT == null) {
                 lastT = Double.MIN_VALUE;
             }
-            if (value.getTimeStamp() > lastT && timerTs == null) {
+            if (value.getTemperature() > lastT && timerTs == null) {
                 Long ts = ctx.timerService().currentProcessingTime() + interval * 1000L;
                 ctx.timerService().registerProcessingTimeTimer(ts);
                 timerTsState.update(ts);
             }
             //更新 温度状态
             lastTemp.update(value.getTemperature());
-            if (value.getTimeStamp() < lastT) {
+            if (value.getTemperature() < lastT) {
                 ctx.timerService().deleteProcessingTimeTimer(timerTs);
                 timerTsState.clear();
             }

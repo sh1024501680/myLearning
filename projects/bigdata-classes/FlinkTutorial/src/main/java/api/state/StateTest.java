@@ -37,7 +37,7 @@ public class StateTest {
     public void getEnv() {
         env = StreamExecutionEnvironment.getExecutionEnvironment();
         env.setParallelism(1);
-        String inPath = "D:\\JavaProjects\\IdeaProject\\FlinkTutorial\\src\\main\\resources\\sensor.csv";
+        String inPath = "src\\main\\resources\\sensor.csv";
         stream = env.readTextFile(inPath);
     }
 
@@ -92,14 +92,16 @@ public class StateTest {
         CheckpointConfig checkpointConfig = env.getCheckpointConfig();
         checkpointConfig.setCheckpointInterval(300);
         checkpointConfig.setCheckpointingMode(CheckpointingMode.AT_LEAST_ONCE);
-        checkpointConfig.setCheckpointTimeout(600000L);
+        checkpointConfig.setCheckpointTimeout(600000L);// 超时时间
         checkpointConfig.setMaxConcurrentCheckpoints(2);//最大同时进行的checkpoint
-        checkpointConfig.setMinPauseBetweenCheckpoints(100L);
+        checkpointConfig.setMinPauseBetweenCheckpoints(100L);//检查点之间最小间隔时间
         checkpointConfig.setPreferCheckpointForRecovery(false);//true倾向于检查点恢复(即使savepoint更近)
         checkpointConfig.setTolerableCheckpointFailureNumber(2);//容忍checkpoint失败次数
         // 重启策略配置
+        //    固定延迟重启
         //    每10s尝试重启，3次后失败
         env.setRestartStrategy(RestartStrategies.fixedDelayRestart(3,10000));
+        //    失败率重启
         //    10分钟内重启3次，每次间隔至少1分钟
         env.setRestartStrategy(RestartStrategies.failureRateRestart(3, Time.minutes(10),Time.minutes(1)));
 
