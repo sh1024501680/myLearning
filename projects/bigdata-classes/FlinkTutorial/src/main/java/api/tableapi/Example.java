@@ -1,12 +1,21 @@
 package api.tableapi;
 
 import bean.SensorReading;
+import org.apache.flink.api.java.ExecutionEnvironment;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSource;
 import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+import org.apache.flink.table.api.DataTypes;
+import org.apache.flink.table.api.EnvironmentSettings;
 import org.apache.flink.table.api.Table;
+import org.apache.flink.table.api.TableEnvironment;
+import org.apache.flink.table.api.bridge.java.BatchTableEnvironment;
 import org.apache.flink.table.api.bridge.java.StreamTableEnvironment;
+import org.apache.flink.table.descriptors.Csv;
+import org.apache.flink.table.descriptors.FileSystem;
+import org.apache.flink.table.descriptors.Schema;
+import org.apache.flink.table.types.DataType;
 import org.apache.flink.types.Row;
 import org.junit.After;
 import org.junit.Before;
@@ -25,7 +34,7 @@ public class Example {
     }
 
     @Test
-    public void test1(){
+    public void tableTest1_ApplicationCase(){
         env.setParallelism(1);
 
         SingleOutputStreamOperator<SensorReading> dataStream = stream.map(line -> {
@@ -49,8 +58,84 @@ public class Example {
 
     }
 
+    @Test
+    public void tableTest2_CommonApi(){
+        StreamTableEnvironment tableEnv = StreamTableEnvironment.create(env);
+        // 1.1 基于老版本 planner 的流处理
+        /*EnvironmentSettings settings = EnvironmentSettings.newInstance()
+                .useOldPlanner()
+                .inStreamingMode()
+                .build();
+        StreamTableEnvironment.create(env, settings);*/
+        // 1.2 基于老版本 planner 的流处理
+        ExecutionEnvironment batchEnv = ExecutionEnvironment.getExecutionEnvironment();
+        BatchTableEnvironment batchTableEnv = BatchTableEnvironment.create(batchEnv);
+        // 1.3 基于Blink的流处理
+        EnvironmentSettings blinkStreamSettings = EnvironmentSettings.newInstance()
+                .useBlinkPlanner()
+                .inStreamingMode()
+                .build();
+        StreamTableEnvironment blinkStreamTableEnv = StreamTableEnvironment.create(env, blinkStreamSettings);
+        // 1.4 基于Blink的批处理
+        EnvironmentSettings blinkBatchSettings = EnvironmentSettings.newInstance()
+                .useBlinkPlanner()
+                .inBatchMode()
+                .build();
+        TableEnvironment blinkBatchTableEnv = TableEnvironment.create(blinkBatchSettings);
+        // 2.表的创建  连接外部系统，读取数据
+        // 2.1 读取文件
+        String inPath = "src\\main\\resources\\sensor.csv";
+        tableEnv.connect(new FileSystem().path(inPath))
+                .withFormat(new Csv())
+                .withSchema(new Schema()
+                        .field("id", DataTypes.STRING())
+                        .field("timeStamp",DataTypes.BIGINT())
+                        .field("temperature",DataTypes.DOUBLE())
+                ).createTemporaryTable("inputTable");
+        Table inputTable = tableEnv.from("inputTable");
+//        inputTable.printSchema();
+//        tableEnv.toAppendStream(inputTable, Row.class).print();
+        // 3.查询转换
+        // 3.1 Table APT
+        //简单转换
+        Table resultTable = inputTable.select("id,temperature")
+                .filter("id === sensor_6");
+        // 聚合统计
+        Table aggTable = inputTable.groupBy("id")
+                .select("id,id.count as count,temperature.avg as avgTemp");
+        // SQL
+        Table res1Tbl = tableEnv.sqlQuery("select id,temperature from inputTable where id='sensor_6'");
+
+    }
+
+    @Test
+    public void TableTest3_OutFile() {
+        StreamTableEnvironment tableEnv = StreamTableEnvironment.create(env);
+        String inPath = "src\\main\\resources\\sensor.csv";
+        tableEnv.connect(new FileSystem().path(inPath))
+                .withFormat(new Csv())
+                .withSchema(new Schema()
+                        .field("id", DataTypes.STRING())
+                        .field("timeStamp",DataTypes.BIGINT())
+                        .field("temperature",DataTypes.DOUBLE())
+                ).createTemporaryTable("inputTable");
+        Table inputTable = tableEnv.from("inputTable");
+        Table resultTable = inputTable.select("id,temperature").filter("id = 'sensor_5'");
+
+        String outPath = "src\\main\\resources\\out.txt";
+        tableEnv.connect(new FileSystem().path(outPath))
+                .withFormat(new Csv())
+                .withSchema(new Schema()
+                        .field("id", DataTypes.STRING())
+                        .field("temperature",DataTypes.DOUBLE())
+                ).createTemporaryTable("outputTable");
+        tableEnv.toAppendStream(resultTable, Row.class).print();
+        resultTable.executeInsert("outputTable");
+
+    }
+
     @After
     public void exec() throws Exception {
-        env.execute("state test");
+        env.execute("example test");
     }
 }
