@@ -78,7 +78,10 @@ hive 常用属性配置
         set hive.exec.max.dynamic.partitions.pernode=1000;
         set hive.exec.max.dynamic.partitions=10000;
         set hive.exec.max.created.files=10000;
-    
+        # lzo压缩 hive执行insert表操作插入数据时前执行
+        SET hive.exec.compress.output=true;
+        SET mapred.output.compression.codec=com.hadoop.compression.lzo.LzopCodec; 
+
     数据倾斜调优
     hive.groupby.skewindata=true 数据倾斜时负载均衡，当选项设定为true，生成的查询计划会有两个MRJob。第一个MRJob 中，Map的输出结果集合会随机分布到Reduce中，每个Reduce做部分聚合操作，并输出结果，这样处理的结果是相同的GroupBy Key有可能被分发到不同的Reduce中，从而达到负载均衡的目的；第二个MRJob再根据预处理的数据结果按照GroupBy Key分布到Reduce中（这个过程可以保证相同的GroupBy Key被分布到同一个Reduce中），最后完成最终的聚合操作。
     
@@ -410,7 +413,7 @@ spark：
 
 sqoop：
     
-    qoop export \
+    sqoop export \
     -Dsqoop.export.records.per.statement=10000 \  批量提交
     --connect 'jdbc:mysql://localhost:3306/test?useUnicode=true&characterEncoding=utf-8&useSSL=false' \
     --username root \
@@ -422,3 +425,13 @@ sqoop：
     --update-mode  allowinsert \
     --input-fields-terminated-by '\001' \
     --input-null-string '\\N' --input-null-non-string '\\N' -m 1
+    
+    mysql存储内容含有 \t \n等特殊字符时被自动拆分问题：
+    利用一下两个参数可以实现对换行等特殊字符的替换或者删除
+        --hive-delims-replacement
+        --hive-drop-import-delims
+    使用方法：
+        1、在原有sqoop语句中添加 --hive-delims-replacement " " 可以将如mysql中取到的\n, \r, and \01等特殊字符替换为自定义的字符，此处用了空格
+        2、在原有sqoop语句中添加 --hive-drop-import-delims 可以将如mysql中取到的\n, \r, and \01等特殊字符丢弃
+
+

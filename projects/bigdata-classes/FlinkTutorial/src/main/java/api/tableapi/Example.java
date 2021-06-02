@@ -2,14 +2,12 @@ package api.tableapi;
 
 import bean.SensorReading;
 import org.apache.flink.api.java.ExecutionEnvironment;
+import org.apache.flink.streaming.api.TimeCharacteristic;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSource;
 import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.apache.flink.table.api.DataTypes;
-import org.apache.flink.table.api.EnvironmentSettings;
-import org.apache.flink.table.api.Table;
-import org.apache.flink.table.api.TableEnvironment;
+import org.apache.flink.table.api.*;
 import org.apache.flink.table.api.bridge.java.BatchTableEnvironment;
 import org.apache.flink.table.api.bridge.java.StreamTableEnvironment;
 import org.apache.flink.table.descriptors.Csv;
@@ -24,10 +22,12 @@ import org.junit.Test;
 public class Example {
     private StreamExecutionEnvironment env;
     private DataStream<String> stream;
+    private StreamTableEnvironment tableEnv;
 
     @Before
     public void getEnv() {
         env = StreamExecutionEnvironment.getExecutionEnvironment();
+        tableEnv = StreamTableEnvironment.create(env);
         env.setParallelism(1);
         String inPath = "src\\main\\resources\\sensor.csv";
         stream = env.readTextFile(inPath);
@@ -60,7 +60,7 @@ public class Example {
 
     @Test
     public void tableTest2_CommonApi(){
-        StreamTableEnvironment tableEnv = StreamTableEnvironment.create(env);
+//        StreamTableEnvironment tableEnv = StreamTableEnvironment.create(env);
         // 1.1 基于老版本 planner 的流处理
         /*EnvironmentSettings settings = EnvironmentSettings.newInstance()
                 .useOldPlanner()
@@ -110,7 +110,7 @@ public class Example {
 
     @Test
     public void TableTest3_OutFile() {
-        StreamTableEnvironment tableEnv = StreamTableEnvironment.create(env);
+//        StreamTableEnvironment tableEnv = StreamTableEnvironment.create(env);
         String inPath = "src\\main\\resources\\sensor.csv";
         tableEnv.connect(new FileSystem().path(inPath))
                 .withFormat(new Csv())
@@ -132,6 +132,30 @@ public class Example {
         tableEnv.toAppendStream(resultTable, Row.class).print();
         resultTable.executeInsert("outputTable");
 
+    }
+
+    @Test
+    public void tableTest5_TimeAndWindow() {
+//        env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
+        DataStream<SensorReading> dataStream = stream.map(line -> {
+            String[] fields = line.split(",");
+            return new SensorReading(fields[0], new Long(fields[1]), new Double(fields[2]));
+        });
+
+        Table dataTable = tableEnv.fromDataStream(dataStream, "id,timeStamp as ts,temperature as temp,pt.proctime");
+        Table dataTable1 = tableEnv.fromDataStream(dataStream, "id,timeStamp as ts,temperature as temp,rt.rowtime");
+//        dataTable.printSchema();
+//        tableEnv.toAppendStream(dataTable, Row.class).print();
+        // 窗口操作
+        dataTable1.printSchema();
+        /*Table resultTable = dataTable1.window(Tumble.over("10.seconds").on("rt").as("tw"))
+                .groupBy("id,tw")
+                .select("id,id.count,temp.avg,tw.end");
+
+        tableEnv.createTemporaryView("sensor",dataTable1);
+        Table resultSqlTable = tableEnv.sqlQuery("select id,count(id) as cnt,avg(temp) as avgTemp,tumble_end(rt,interval '10' second )" +
+                " from sensor group by id,tumble(rt,interval '10' second )");
+        tableEnv.toRetractStream(resultSqlTable, Row.class).print();*/
     }
 
     @After
