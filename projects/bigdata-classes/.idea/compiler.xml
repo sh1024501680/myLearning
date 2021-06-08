@@ -8,6 +8,7 @@
         <outputRelativeToContentRoot value="true" />
         <module name="spark-core" />
         <module name="FlinkTutorial" />
+        <module name="HotItemsAnalysis" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel target="8" />

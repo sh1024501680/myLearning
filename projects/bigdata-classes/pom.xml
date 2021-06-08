@@ -11,6 +11,7 @@
     <modules>
         <module>spark-core</module>
         <module>FlinkTutorial</module>
+        <module>UserBehaviorAnalysis</module>
     </modules>
 
     <repositories>
@@ -35,7 +36,7 @@
     </pluginRepositories>
 
     <properties>
-        <maven.compiler.source>1.8</maven.compiler.source>
-        <maven.compiler.target>1.8</maven.compiler.target>
+        <maven.compiler.source>8</maven.compiler.source>
+        <maven.compiler.target>8</maven.compiler.target>
     </properties>
 </project>
