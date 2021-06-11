@@ -7,8 +7,9 @@
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <module name="spark-core" />
-        <module name="FlinkTutorial" />
+        <module name="NetworkFlowAnalysis" />
         <module name="HotItemsAnalysis" />
+        <module name="FlinkTutorial" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel target="8" />
