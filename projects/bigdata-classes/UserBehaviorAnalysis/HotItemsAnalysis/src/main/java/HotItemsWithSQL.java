@@ -9,7 +9,6 @@ import org.apache.flink.configuration.Configuration;
 import org.apache.flink.shaded.curator4.org.apache.curator.shaded.com.google.common.collect.Lists;
 import org.apache.flink.streaming.api.TimeCharacteristic;
 import org.apache.flink.streaming.api.datastream.DataStream;
-import org.apache.flink.streaming.api.datastream.DataStreamSource;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.AscendingTimestampExtractor;
 import org.apache.flink.streaming.api.functions.KeyedProcessFunction;
@@ -17,6 +16,11 @@ import org.apache.flink.streaming.api.functions.windowing.WindowFunction;
 import org.apache.flink.streaming.api.windowing.time.Time;
 import org.apache.flink.streaming.api.windowing.windows.TimeWindow;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer;
+import org.apache.flink.table.api.EnvironmentSettings;
+import org.apache.flink.table.api.Slide;
+import org.apache.flink.table.api.Table;
+import org.apache.flink.table.api.bridge.java.StreamTableEnvironment;
+import org.apache.flink.types.Row;
 import org.apache.flink.util.Collector;
 
 import java.sql.Timestamp;
@@ -24,7 +28,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Properties;
 
-public class HotItems {
+public class HotItemsWithSQL {
     public static void main(String[] args) throws Exception{
         //1. 创建执行环境
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
@@ -32,16 +36,16 @@ public class HotItems {
         env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
 
         //2. 读取数据，创建DataStream
-//        DataStream<String> inputStream = env.readTextFile("E:\\笔记和文档\\myLearning\\projects\\bigdata-classes\\UserBehaviorAnalysis\\HotItemsAnalysis\\src\\main\\resources\\UserBehavior.csv");
+        DataStream<String> inputStream = env.readTextFile("E:\\笔记和文档\\myLearning\\projects\\bigdata-classes\\UserBehaviorAnalysis\\HotItemsAnalysis\\src\\main\\resources\\UserBehavior.csv");
 
-        Properties properties = new Properties();
-        properties.setProperty("bootstrap.servers", "centos7:9092");
-        properties.setProperty("group.id", "consumer-group");
+//        Properties properties = new Properties();
+//        properties.setProperty("bootstrap.servers", "centos7:9092");
+//        properties.setProperty("group.id", "consumer-group");
 //        properties.setProperty("auto.offset.reset", "from-beginning");
-        properties.setProperty("auto.offset.reset", "latest");
+//        properties.setProperty("auto.offset.reset", "latest");
 
 
-        DataStream<String> inputStream = env.addSource(new FlinkKafkaConsumer<String>("hotitems", new SimpleStringSchema(), properties));
+//        DataStream<String> inputStream = env.addSource(new FlinkKafkaConsumer<String>("hotitems", new SimpleStringSchema(), properties));
 
         //3. 转换为POJO，分配时间戳和watermark
         DataStream<UserBehavior> dataStream = inputStream.map(line -> {
@@ -53,25 +57,42 @@ public class HotItems {
                 return element.getTimeStamp() * 1000L;
             }
         });
-        //4. 分组开窗聚合，得到每个窗口内各个商品的count
-        DataStream<ItemViewCount> windowAggStream = dataStream.filter(data -> {
-            return "pv".equals(data.getBehavior());  // 过滤PV行为
-        }).keyBy("itemId")  //按商品ID分组
-                .timeWindow(Time.hours(1), Time.minutes(5))
-                .aggregate(new ItemCountAgg(), new WindowFunction<Long, ItemViewCount, Tuple, TimeWindow>() {
-                    @Override
-                    public void apply(Tuple tuple, TimeWindow window, Iterable<Long> input, Collector<ItemViewCount> out) throws Exception {
-                        Long itemId = tuple.getField(0);
-                        long windowEnd = window.getEnd();
-                        Long count = input.iterator().next();
-                        out.collect(new ItemViewCount(itemId,windowEnd,count));
-                    }
-                });
+        //4. 创建表执行环境
+        EnvironmentSettings settings = EnvironmentSettings.newInstance()
+                .useBlinkPlanner()
+                .inStreamingMode()
+                .build();
+        StreamTableEnvironment tableEnv = StreamTableEnvironment.create(env, settings);
+        Table dataTable = tableEnv.fromDataStream(dataStream, "itemId,behavior,timeStamp.rowtime as ts");
 
-        //5. 收集同一窗口的所有商品count数据，排序输出top n
-        DataStream<String> resultStream = windowAggStream.keyBy("windowEnd") //按窗口分组
-                .process(new TopNHotItems(5));  // 自定义处理函数排序前5
-        resultStream.print("");
+        // table API
+        Table windowAggTable = dataTable.filter("behavior = 'pv'")
+                .window(Slide.over("1.hours").every("5.minutes").on("ts").as("w"))
+                .groupBy("itemId,w")
+                .select("itemId,w.end as windowEnd,itemId.count as cnt");
+
+        // 利用开窗函数 对count值排序并获取Row number，得到top N
+        // SQL
+            DataStream<Row> aggStream = tableEnv.toAppendStream(windowAggTable, Row.class);
+        tableEnv.createTemporaryView("agg", aggStream, "itemId,windowEnd,cnt");
+
+        Table resultTable = tableEnv.sqlQuery("select * from " +
+                "(select *,row_number() over(partition by windowEnd order by cnt desc) as row_num from agg) a" +
+                " where a.row_num<=5");
+//        tableEnv.toRetractStream(resultTable, Row.class).print();
+
+        //纯SQL 实现
+        tableEnv.createTemporaryView("data_table", dataStream, "itemId,behavior,timeStamp.rowtime as ts");
+        Table resultSqlTable = tableEnv.sqlQuery("select * from " +
+                "(select *,row_number() over(partition by windowEnd order by cnt desc) as row_num " +
+                "from (" +
+                "select itemId,count(itemId) as cnt,HOP_END(ts,interval '5' minute,interval '1' hour) as windowEnd" +
+                "from data_table where behavior = 'pv' " +
+                "group by itemId,HOP(ts,interval '5' minute,interval '1' hour)" +
+                ")  ) " +
+                " where row_num<=5");
+        tableEnv.toRetractStream(resultSqlTable, Row.class).print();
+
         env.execute("hot item analysis");
     }
 
@@ -150,4 +171,5 @@ public class HotItems {
             out.collect(resultBuilder.toString());
         }
     }
+
 }
