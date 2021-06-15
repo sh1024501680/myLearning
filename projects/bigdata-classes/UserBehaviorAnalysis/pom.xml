@@ -13,7 +13,12 @@
     <packaging>pom</packaging>
     <modules>
         <module>HotItemsAnalysis</module>
+<<<<<<< HEAD
         <module>MarketAnalysis</module>
+=======
+        <module>LoginFailDetect</module>
+        <module>OrderPayDetect</module>
+>>>>>>> 945300c6883ad777a2a419894ae818ef774b6a7f
     </modules>
 
     <properties>

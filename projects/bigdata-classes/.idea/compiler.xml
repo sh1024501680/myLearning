@@ -11,6 +11,8 @@
         <module name="HotItemsAnalysis" />
         <module name="MarketAnalysis" />
         <module name="FlinkTutorial" />
+        <module name="OrderPayDetect" />
+        <module name="LoginFailDetect" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel target="8" />
