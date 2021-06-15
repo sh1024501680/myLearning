@@ -10,6 +10,8 @@
         <module name="NetworkFlowAnalysis" />
         <module name="HotItemsAnalysis" />
         <module name="FlinkTutorial" />
+        <module name="OrderPayDetect" />
+        <module name="LoginFailDetect" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel target="8" />

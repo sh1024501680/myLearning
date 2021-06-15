@@ -13,6 +13,8 @@
     <packaging>pom</packaging>
     <modules>
         <module>HotItemsAnalysis</module>
+        <module>LoginFailDetect</module>
+        <module>OrderPayDetect</module>
     </modules>
 
     <properties>
