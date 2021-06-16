@@ -3,16 +3,22 @@ package orderpay_detect;
 import orderpay_detect.beans.OrderEvent;
 import orderpay_detect.beans.OrderResult;
 import org.apache.flink.cep.CEP;
+import org.apache.flink.cep.PatternSelectFunction;
+import org.apache.flink.cep.PatternStream;
+import org.apache.flink.cep.PatternTimeoutFunction;
 import org.apache.flink.cep.pattern.Pattern;
 import org.apache.flink.cep.pattern.conditions.SimpleCondition;
 import org.apache.flink.streaming.api.TimeCharacteristic;
 import org.apache.flink.streaming.api.datastream.DataStream;
+import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.AscendingTimestampExtractor;
 import org.apache.flink.streaming.api.windowing.time.Time;
 import org.apache.flink.util.OutputTag;
 
 import java.net.URL;
+import java.util.List;
+import java.util.Map;
 
 public class OrderPayTimeout {
     public static void main(String[] args) throws Exception {
@@ -48,7 +54,25 @@ public class OrderPayTimeout {
         OutputTag<OrderResult> orderTimeoutTag = new OutputTag<OrderResult>("order-timeout") {};
 
         // 将pattern应用到数据流
-        CEP.pattern(dataStream.keyBy(OrderEvent::getOrderId), orderPayPattern);
+        PatternStream<OrderEvent> patternStream = CEP.pattern(dataStream.keyBy(OrderEvent::getOrderId), orderPayPattern);
+
+        SingleOutputStreamOperator<OrderResult> result = patternStream.select(orderTimeoutTag,
+                new PatternTimeoutFunction<OrderEvent, OrderResult>() {
+            @Override
+            public OrderResult timeout(Map<String, List<OrderEvent>> map, long timeoutTimestamp) throws Exception {
+                Long timeoutOrderId = map.get("create").iterator().next().getOrderId();
+                return new OrderResult(timeoutOrderId,"timeout:"+timeoutTimestamp);
+            }
+        }, new PatternSelectFunction<OrderEvent, OrderResult>() {
+                    @Override
+                    public OrderResult select(Map<String, List<OrderEvent>> map) throws Exception {
+                        Long orderId = map.get("pay").iterator().next().getOrderId();
+                        return new OrderResult(orderId,"payed");
+                    }
+                });
+
+        result.print("payed normally");
+        result.getSideOutput(orderTimeoutTag).print("timeout");
 
         env.execute("");
     }

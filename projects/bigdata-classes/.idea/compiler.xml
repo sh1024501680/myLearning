@@ -6,11 +6,11 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
-        <module name="spark-core" />
         <module name="NetworkFlowAnalysis" />
         <module name="HotItemsAnalysis" />
-        <module name="MarketAnalysis" />
         <module name="FlinkTutorial" />
+        <module name="spark-core" />
+        <module name="MarketAnalysis" />
         <module name="OrderPayDetect" />
         <module name="LoginFailDetect" />
       </profile>
