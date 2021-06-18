@@ -412,7 +412,25 @@ spark：
         连接不能写在driver层；如果写在foreach算子中则每个RDD中的每条数据都创建连接，效率低；增加foreachPartition，在分区创建(获取)
 
 sqoop：
-    
+    sqoop import \
+    --hive-import \
+    --connect 'jdbc:mysql://locahost:3306/test?defaultFetchSize=5000&useCursorFetch=true&useServerPrepStmts=true&cachePrepStmts=true&useCompression=true&tinyInt1isBit=false' \
+    --username root \
+    --password 123456 \
+    --table t1  \
+    --fields-terminated-by "\001" \
+    --columns id,neme \
+    --hive-overwrite \
+    --hive-partition-key dt_ \
+    --hive-partition-value $DATESTR \
+    --compress \
+    --compression-codec com.hadoop.compression.lzo.LzopCodec \
+    --target-dir /tmp/sqoop/t1 \
+    --delete-target-dir \
+    --hive-drop-import-delims --null-string '\\N' --null-non-string '\\N' -m 1 \
+    --hive-table default.ods_t1;
+
+
     sqoop export \
     -Dsqoop.export.records.per.statement=10000 \  批量提交
     --connect 'jdbc:mysql://localhost:3306/test?useUnicode=true&characterEncoding=utf-8&useSSL=false' \
