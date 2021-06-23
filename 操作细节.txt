@@ -328,6 +328,10 @@ Tomcat:首页host-manager无法访问时，修改webapps/host-manager/META-INF/c
     
 linux：
     sed -n  '1,3p' file.txt  打印 file.txt 文件第1到3行包含1,3
+
+    替换/home下所有文件中的aaa为bbb
+　　sed -i "s/aaa/bbb/g" `grep aaa -rl /home`
+
     rz 命令安装：yum install -y lrzsz 
         swappiness值的大小对如何使用swap分区是有着很大的联系。swappiness=0的时候表示
     最大限度使用物理内存，然后才是 swap空间，swappiness＝100的时候表示积极的使用swap
