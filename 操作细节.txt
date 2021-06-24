@@ -42,6 +42,10 @@ mysql使用正则批量删除表：
 mysql修改自增id起始值(单机mysql)：
     alter table dc_meta_table AUTO_INCREMENT=1
 
+mysql开启远程访问权限：
+    grant all privileges  on *.* to root@'%' identified by "123456";
+    flush privileges;
+
 hue安装：依赖安装后make apps报错->使用PREFIX=/opt/install/ make install
     启动后报错 OperationalError: attempt to write a readonly database
     需要创建hue用户，并将/usr/local/hue、/var/log/hue (编译hue的路径)目录的所有权交给hue用户
