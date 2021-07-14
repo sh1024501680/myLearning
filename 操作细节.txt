@@ -95,6 +95,10 @@ hive 常用属性配置
             第二个MRJob再根据预处理的数据结果按照GroupBy Key分布到Reduce中（这个过程可以保证
             相同的GroupBy Key被分布到同一个Reduce中），最后完成最终的聚合操作。
     
+    容易产生数据倾斜的原因：主表关联大量表，导致大量空值关联
+    
+    
+    
     hive开启本地模式：
         set hive.exec.mode.local.auto=true;
         -- 设置输入数据小于该值，使用本地模式 52428800:50MB  134217728:128MB
@@ -103,8 +107,10 @@ hive 常用属性配置
         set hive.exec.mode.local.auto.input.files.max=5;        
         
 hive 分区操作
-    删除时间范围分区：
+    # 删除时间范围分区：
     alter table wmxy_dwd.dwd_qianzhi_customer_status_day drop partition(dt_>='2020-01-01',dt_<'2021-01-01');
+    # 修改分区
+    ALTER TABLE table_name PARTITION (dt='2008-08-08') RENAME TO PARTITION (dt='20080808');
     # 导入未分区数据到分区表
     insert overwrite table t1 partition(dt) select c1,c2 dt from t2;
 
